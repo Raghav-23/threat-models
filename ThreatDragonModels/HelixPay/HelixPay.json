@@ -3,14 +3,14 @@
   "summary": {
     "title": "HelixPay - Steal customer payment data",
     "owner": "",
-    "description": "How could HelixPay have a customer payment-data breach? Diagram 1 is the team's attack tree (goal = steal customer payment data; AND/OR branches). Diagram 2 maps the same attack paths onto the system with STRIDE threats and mitigations.",
+    "description": "How could HelixPay have a customer payment-data breach? Attack tree with the goal 'steal customer payment data' at the root and AND/OR branches below; each attack step carries its STRIDE threats and mitigations.",
     "id": 0
   },
   "detail": {
     "contributors": [],
     "diagrams": [
       {
-        "id": 1,
+        "id": 0,
         "title": "Attack tree - how a data breach happens",
         "diagramType": "STRIDE",
         "placeholder": "Attack tree: goal at the top, AND/OR branches below. Arrows point from each attack step to the goal it serves.",
@@ -68,7 +68,7 @@
                 "text": "Gain DB access"
               },
               "body": {
-                "stroke": "#333333",
+                "stroke": "red",
                 "strokeWidth": 1.5,
                 "strokeDasharray": ""
               }
@@ -83,8 +83,35 @@
               "description": "OR: any child path gives the attacker the cardholder database.",
               "outOfScope": false,
               "reasonOutOfScope": "",
-              "threats": [],
-              "hasOpenThreats": false,
+              "threats": [
+                {
+                  "id": "e17be684-1a31-4fc6-982a-f2c203b2a5d8",
+                  "title": "Bulk exfiltration of card data",
+                  "status": "Open",
+                  "severity": "Critical",
+                  "type": "Information disclosure",
+                  "description": "Any path that reaches DB access (admin, lateral movement, staging, cloud exposure) can dump stored PANs; damage depends on whether data is tokenised/encrypted.",
+                  "mitigation": "Tokenise or encrypt PAN with KMS/HSM-held keys, column-level access, no CVV storage, egress controls.",
+                  "modelType": "STRIDE",
+                  "new": false,
+                  "number": 13,
+                  "score": ""
+                },
+                {
+                  "id": "15f9d26c-be15-404d-a7b3-16a90726f53c",
+                  "title": "Undetected bulk reads",
+                  "status": "Open",
+                  "severity": "Medium",
+                  "type": "Repudiation",
+                  "description": "Weak logging means a dump is not noticed or attributable.",
+                  "mitigation": "DB activity monitoring, alerts on bulk SELECTs, immutable logs, CloudTrail + GuardDuty.",
+                  "modelType": "STRIDE",
+                  "new": false,
+                  "number": 14,
+                  "score": ""
+                }
+              ],
+              "hasOpenThreats": true,
               "privilegeLevel": ""
             }
           },
@@ -102,7 +129,7 @@
                 "text": "Compromise payment server"
               },
               "body": {
-                "stroke": "#333333",
+                "stroke": "red",
                 "strokeWidth": 1.5,
                 "strokeDasharray": ""
               }
@@ -117,8 +144,35 @@
               "description": "Card data in transit / memory on the payment server.",
               "outOfScope": false,
               "reasonOutOfScope": "",
-              "threats": [],
-              "hasOpenThreats": false,
+              "threats": [
+                {
+                  "id": "2efd34bf-b3c6-4dec-a0c9-4b69961623f3",
+                  "title": "Card data scraped from memory or logs",
+                  "status": "Open",
+                  "severity": "High",
+                  "type": "Information disclosure",
+                  "description": "With code execution, PANs in memory or accidentally logged are harvested directly - DB access is not needed.",
+                  "mitigation": "Never log PAN, mask in logs, tokenise as early as possible, file-integrity and EDR monitoring.",
+                  "modelType": "STRIDE",
+                  "new": false,
+                  "number": 10,
+                  "score": ""
+                },
+                {
+                  "id": "b85b3066-9be0-4cd5-8585-d6e7e9f933ce",
+                  "title": "Interception on internal hop",
+                  "status": "Open",
+                  "severity": "Medium",
+                  "type": "Information disclosure",
+                  "description": "If TLS terminates at the gateway, PANs cross the VPC in clear.",
+                  "mitigation": "TLS/mTLS end to end inside the VPC.",
+                  "modelType": "STRIDE",
+                  "new": false,
+                  "number": 16,
+                  "score": ""
+                }
+              ],
+              "hasOpenThreats": true,
               "privilegeLevel": ""
             }
           },
@@ -170,7 +224,7 @@
                 "text": "Take over one of 16 admin accounts"
               },
               "body": {
-                "stroke": "#333333",
+                "stroke": "red",
                 "strokeWidth": 1.5,
                 "strokeDasharray": ""
               }
@@ -185,8 +239,35 @@
               "description": "AND: needs all three children. 16 standing admins = 16 targets.",
               "outOfScope": false,
               "reasonOutOfScope": "",
-              "threats": [],
-              "hasOpenThreats": false,
+              "threats": [
+                {
+                  "id": "c0393487-d63e-44e8-94da-50ce62a75562",
+                  "title": "Admin account takeover via AiTM phishing + weak MFA",
+                  "status": "Open",
+                  "severity": "Critical",
+                  "type": "Spoofing",
+                  "description": "Phishing AND weak MFA AND MITM: adversary-in-the-middle kit steals session cookie, or MFA push fatigue gets a prompt accepted. 16 standing admin accounts multiply the targets.",
+                  "mitigation": "Phishing-resistant MFA (FIDO2/passkeys), number matching, cut standing admins via just-in-time PAM, conditional access, session binding.",
+                  "modelType": "STRIDE",
+                  "new": false,
+                  "number": 3,
+                  "score": ""
+                },
+                {
+                  "id": "63843293-6c88-4394-841c-7f8b2b63e51d",
+                  "title": "Malicious or careless insider",
+                  "status": "Open",
+                  "severity": "Medium",
+                  "type": "Elevation of privilege",
+                  "description": "An admin abuses or mishandles standing access to the cardholder DB.",
+                  "mitigation": "Least privilege, dual control for CDE access, session recording, bulk-read alerting.",
+                  "modelType": "STRIDE",
+                  "new": false,
+                  "number": 4,
+                  "score": ""
+                }
+              ],
+              "hasOpenThreats": true,
               "privilegeLevel": ""
             }
           },
@@ -306,7 +387,7 @@
                 "text": "Exploit Log4j (Log4Shell)"
               },
               "body": {
-                "stroke": "#333333",
+                "stroke": "red",
                 "strokeWidth": 1.5,
                 "strokeDasharray": ""
               }
@@ -321,8 +402,22 @@
               "description": "CVE-2021-44228 RCE on the Java payment server; then scrape PANs or pivot to the DB.",
               "outOfScope": false,
               "reasonOutOfScope": "",
-              "threats": [],
-              "hasOpenThreats": false,
+              "threats": [
+                {
+                  "id": "b6009e28-6ea5-4dc0-9ce8-6a54103dd4c3",
+                  "title": "Log4Shell remote code execution",
+                  "status": "Open",
+                  "severity": "Critical",
+                  "type": "Elevation of privilege",
+                  "description": "Unpatched Log4j (CVE-2021-44228) lets an attacker run code on the payment server via a crafted string in any logged field.",
+                  "mitigation": "Patch Log4j >= 2.17.1, SBOM + dependency scanning, WAF virtual patch, block outbound LDAP/JNDI egress.",
+                  "modelType": "STRIDE",
+                  "new": false,
+                  "number": 9,
+                  "score": ""
+                }
+              ],
+              "hasOpenThreats": true,
               "privilegeLevel": ""
             }
           },
@@ -340,7 +435,7 @@
                 "text": "Phish customers"
               },
               "body": {
-                "stroke": "#333333",
+                "stroke": "red",
                 "strokeWidth": 1.5,
                 "strokeDasharray": ""
               }
@@ -355,8 +450,22 @@
               "description": "Lookalike site / SMS / email captures card details or app logins.",
               "outOfScope": false,
               "reasonOutOfScope": "",
-              "threats": [],
-              "hasOpenThreats": false,
+              "threats": [
+                {
+                  "id": "5d3ee630-71d0-47f1-be4a-edd6c88227f0",
+                  "title": "Customer phished for card data / credentials",
+                  "status": "Open",
+                  "severity": "Medium",
+                  "type": "Spoofing",
+                  "description": "Lookalike sites, SMS or email lure customers into entering card details or app credentials.",
+                  "mitigation": "Customer awareness messaging, DMARC/BIMI on email domains, brand-domain takedown service, step-up auth for new devices.",
+                  "modelType": "STRIDE",
+                  "new": false,
+                  "number": 1,
+                  "score": ""
+                }
+              ],
+              "hasOpenThreats": true,
               "privilegeLevel": ""
             }
           },
@@ -374,7 +483,7 @@
                 "text": "XSS / skimming script in app"
               },
               "body": {
-                "stroke": "#333333",
+                "stroke": "red",
                 "strokeWidth": 1.5,
                 "strokeDasharray": ""
               }
@@ -389,8 +498,22 @@
               "description": "Injected JS on checkout captures cards as typed (Magecart-style).",
               "outOfScope": false,
               "reasonOutOfScope": "",
-              "threats": [],
-              "hasOpenThreats": false,
+              "threats": [
+                {
+                  "id": "2fec5a4e-0863-4d23-8622-5e5136908e97",
+                  "title": "Client-side skimming via XSS or third-party script",
+                  "status": "Open",
+                  "severity": "High",
+                  "type": "Information disclosure",
+                  "description": "Injected JavaScript on the checkout page captures card numbers as they are typed (Magecart-style). Whiteboard: XSS.",
+                  "mitigation": "Output encoding, strict Content-Security-Policy, Subresource Integrity, script inventory and change detection (PCI DSS 6.4.3 / 11.6.1), hosted payment fields / iframe tokenisation.",
+                  "modelType": "STRIDE",
+                  "new": false,
+                  "number": 2,
+                  "score": ""
+                }
+              ],
+              "hasOpenThreats": true,
               "privilegeLevel": ""
             }
           },
@@ -408,7 +531,7 @@
                 "text": "Abuse API gateway (BOLA, credential stuffing)"
               },
               "body": {
-                "stroke": "#333333",
+                "stroke": "red",
                 "strokeWidth": 1.5,
                 "strokeDasharray": ""
               }
@@ -423,8 +546,35 @@
               "description": "Read other customers' data through broken object-level authorisation.",
               "outOfScope": false,
               "reasonOutOfScope": "",
-              "threats": [],
-              "hasOpenThreats": false,
+              "threats": [
+                {
+                  "id": "2ed4f528-7ac6-4a00-ad54-d59c6b9b1bb6",
+                  "title": "Broken object-level authorisation (BOLA)",
+                  "status": "Open",
+                  "severity": "High",
+                  "type": "Elevation of privilege",
+                  "description": "Changing an object ID in an API call returns another customer's data or payment methods.",
+                  "mitigation": "Object-level authorisation checks in every service, API security testing (OWASP API Top 10), schema validation at the gateway.",
+                  "modelType": "STRIDE",
+                  "new": false,
+                  "number": 5,
+                  "score": ""
+                },
+                {
+                  "id": "32d9b3ba-5b69-4a3d-a322-956f093a57e3",
+                  "title": "Credential stuffing against customer login",
+                  "status": "Open",
+                  "severity": "Medium",
+                  "type": "Spoofing",
+                  "description": "Reused passwords tried at scale to take over customer accounts.",
+                  "mitigation": "Rate limiting, bot detection, breached-password checks, customer MFA / passkeys.",
+                  "modelType": "STRIDE",
+                  "new": false,
+                  "number": 6,
+                  "score": ""
+                }
+              ],
+              "hasOpenThreats": true,
               "privilegeLevel": ""
             }
           },
@@ -476,7 +626,7 @@
                 "text": "Weak MFA implementation"
               },
               "body": {
-                "stroke": "#333333",
+                "stroke": "red",
                 "strokeWidth": 1.5,
                 "strokeDasharray": ""
               }
@@ -491,8 +641,22 @@
               "description": "SMS/OTP/push MFA - phishable, fatigue-prone.",
               "outOfScope": false,
               "reasonOutOfScope": "",
-              "threats": [],
-              "hasOpenThreats": false,
+              "threats": [
+                {
+                  "id": "4c5e5742-8d9e-4079-8941-ace688cfe95c",
+                  "title": "MFA bypass",
+                  "status": "Open",
+                  "severity": "High",
+                  "type": "Spoofing",
+                  "description": "SMS/OTP/push MFA is phishable and fatigue-prone.",
+                  "mitigation": "Enforce FIDO2/WebAuthn for all privileged users; disable SMS fallback.",
+                  "modelType": "STRIDE",
+                  "new": false,
+                  "number": 11,
+                  "score": ""
+                }
+              ],
+              "hasOpenThreats": true,
               "privilegeLevel": ""
             }
           },
@@ -510,7 +674,7 @@
                 "text": "MITM (session hijack)"
               },
               "body": {
-                "stroke": "#333333",
+                "stroke": "red",
                 "strokeWidth": 1.5,
                 "strokeDasharray": ""
               }
@@ -525,8 +689,22 @@
               "description": "Adversary-in-the-middle steals the session cookie after MFA.",
               "outOfScope": false,
               "reasonOutOfScope": "",
-              "threats": [],
-              "hasOpenThreats": false,
+              "threats": [
+                {
+                  "id": "67da5802-917d-4bfa-9c52-488f75ccb19d",
+                  "title": "Session cookie theft (AiTM)",
+                  "status": "Open",
+                  "severity": "Critical",
+                  "type": "Spoofing",
+                  "description": "Reverse-proxy phishing captures the authenticated session.",
+                  "mitigation": "FIDO2, token binding, short sessions, impossible-travel alerts.",
+                  "modelType": "STRIDE",
+                  "new": false,
+                  "number": 18,
+                  "score": ""
+                }
+              ],
+              "hasOpenThreats": true,
               "privilegeLevel": ""
             }
           },
@@ -544,7 +722,7 @@
                 "text": "Compromise Jenkins server"
               },
               "body": {
-                "stroke": "#333333",
+                "stroke": "red",
                 "strokeWidth": 1.5,
                 "strokeDasharray": ""
               }
@@ -559,8 +737,22 @@
               "description": "Exposed CI/CD, stored secrets, deploy rights.",
               "outOfScope": false,
               "reasonOutOfScope": "",
-              "threats": [],
-              "hasOpenThreats": false,
+              "threats": [
+                {
+                  "id": "2b62b098-4b98-46d0-a6ab-060113060434",
+                  "title": "Pipeline compromise / secrets theft",
+                  "status": "Open",
+                  "severity": "High",
+                  "type": "Tampering",
+                  "description": "Exposed Jenkins or weak auth lets an attacker steal stored credentials or push a backdoored build to the payment server (privilege escalation).",
+                  "mitigation": "Private network only, SSO + MFA, secrets in a vault with short-lived tokens, signed builds, plugin hygiene, least-privilege deploy roles.",
+                  "modelType": "STRIDE",
+                  "new": false,
+                  "number": 12,
+                  "score": ""
+                }
+              ],
+              "hasOpenThreats": true,
               "privilegeLevel": ""
             }
           },
@@ -578,7 +770,7 @@
                 "text": "Compromise a microservice"
               },
               "body": {
-                "stroke": "#333333",
+                "stroke": "red",
                 "strokeWidth": 1.5,
                 "strokeDasharray": ""
               }
@@ -593,8 +785,22 @@
               "description": "Flat network + no service-to-service auth.",
               "outOfScope": false,
               "reasonOutOfScope": "",
-              "threats": [],
-              "hasOpenThreats": false,
+              "threats": [
+                {
+                  "id": "904f8091-8ed6-4b6f-bc26-5211bf12c199",
+                  "title": "Lateral movement through implicit service trust",
+                  "status": "Open",
+                  "severity": "High",
+                  "type": "Elevation of privilege",
+                  "description": "Flat network and no service-to-service auth let an attacker on any service reach the cardholder DB.",
+                  "mitigation": "Network segmentation / security groups, mTLS with service identity, per-service DB credentials with least privilege.",
+                  "modelType": "STRIDE",
+                  "new": false,
+                  "number": 8,
+                  "score": ""
+                }
+              ],
+              "hasOpenThreats": true,
               "privilegeLevel": ""
             }
           },
@@ -612,7 +818,7 @@
                 "text": "Staging / API server exposed"
               },
               "body": {
-                "stroke": "#333333",
+                "stroke": "red",
                 "strokeWidth": 1.5,
                 "strokeDasharray": ""
               }
@@ -627,8 +833,35 @@
               "description": "Internet-facing staging with prod data or shared creds.",
               "outOfScope": false,
               "reasonOutOfScope": "",
-              "threats": [],
-              "hasOpenThreats": false,
+              "threats": [
+                {
+                  "id": "37d9cb44-f362-4b66-8a4d-ffa3386e9655",
+                  "title": "Exposed staging server with production data or shared secrets",
+                  "status": "Open",
+                  "severity": "High",
+                  "type": "Information disclosure",
+                  "description": "Staging is internet-reachable, less hardened, and may hold copied production card data or the same credentials as prod; foothold for lateral movement.",
+                  "mitigation": "Remove public exposure (VPN/allow-list), synthetic or tokenised test data only, separate AWS accounts and secrets per environment.",
+                  "modelType": "STRIDE",
+                  "new": false,
+                  "number": 7,
+                  "score": ""
+                },
+                {
+                  "id": "766ee701-9135-4998-aca2-98fcc772531f",
+                  "title": "Staging path into production data",
+                  "status": "Open",
+                  "severity": "High",
+                  "type": "Elevation of privilege",
+                  "description": "Shared credentials or data sync give the exposed staging server a route to the CDE.",
+                  "mitigation": "No network path from staging to prod; separate credentials.",
+                  "modelType": "STRIDE",
+                  "new": false,
+                  "number": 17,
+                  "score": ""
+                }
+              ],
+              "hasOpenThreats": true,
               "privilegeLevel": ""
             }
           },
@@ -646,7 +879,7 @@
                 "text": "Security misconfiguration"
               },
               "body": {
-                "stroke": "#333333",
+                "stroke": "red",
                 "strokeWidth": 1.5,
                 "strokeDasharray": ""
               }
@@ -661,8 +894,22 @@
               "description": "Public bucket, open SG, public snapshot.",
               "outOfScope": false,
               "reasonOutOfScope": "",
-              "threats": [],
-              "hasOpenThreats": false,
+              "threats": [
+                {
+                  "id": "7829cbe4-c768-4f7b-a82d-3513831fd033",
+                  "title": "Public bucket or snapshot exposes card data",
+                  "status": "Open",
+                  "severity": "Critical",
+                  "type": "Information disclosure",
+                  "description": "Security misconfiguration makes AWS storage or the DB security group publicly reachable.",
+                  "mitigation": "S3 Block Public Access at account level, encrypted private snapshots, AWS Config / CSPM rules, IaC scanning.",
+                  "modelType": "STRIDE",
+                  "new": false,
+                  "number": 15,
+                  "score": ""
+                }
+              ],
+              "hasOpenThreats": true,
               "privilegeLevel": ""
             }
           },
@@ -2054,1746 +2301,9 @@
             }
           }
         ]
-      },
-      {
-        "id": 0,
-        "title": "HelixPay payment data flow",
-        "diagramType": "STRIDE",
-        "placeholder": "New STRIDE diagram description",
-        "thumbnail": "./public/content/images/thumbnail.stride.jpg",
-        "version": "2.2.0",
-        "cells": [
-          {
-            "position": {
-              "x": 20,
-              "y": 40
-            },
-            "size": {
-              "width": 260,
-              "height": 780
-            },
-            "attrs": {
-              "headerText": {
-                "text": "Internet (untrusted)"
-              },
-              "label": {
-                "text": "Internet (untrusted)"
-              }
-            },
-            "visible": true,
-            "shape": "trust-boundary-box",
-            "zIndex": -1,
-            "id": "7ec0ab9c-a290-401e-ac00-5e09cb81f946",
-            "data": {
-              "type": "tm.BoundaryBox",
-              "name": "Internet (untrusted)",
-              "description": "",
-              "isTrustBoundary": true,
-              "hasOpenThreats": false
-            }
-          },
-          {
-            "position": {
-              "x": 320,
-              "y": 40
-            },
-            "size": {
-              "width": 220,
-              "height": 780
-            },
-            "attrs": {
-              "headerText": {
-                "text": "DMZ"
-              },
-              "label": {
-                "text": "DMZ"
-              }
-            },
-            "visible": true,
-            "shape": "trust-boundary-box",
-            "zIndex": -1,
-            "id": "c6ff777b-adb7-4e43-b173-81bb0227239a",
-            "data": {
-              "type": "tm.BoundaryBox",
-              "name": "DMZ",
-              "description": "",
-              "isTrustBoundary": true,
-              "hasOpenThreats": false
-            }
-          },
-          {
-            "position": {
-              "x": 580,
-              "y": 40
-            },
-            "size": {
-              "width": 420,
-              "height": 780
-            },
-            "attrs": {
-              "headerText": {
-                "text": "Internal application zone (AWS VPC)"
-              },
-              "label": {
-                "text": "Internal application zone (AWS VPC)"
-              }
-            },
-            "visible": true,
-            "shape": "trust-boundary-box",
-            "zIndex": -1,
-            "id": "da91d7d1-bcf9-47d4-bc44-35a0925e4449",
-            "data": {
-              "type": "tm.BoundaryBox",
-              "name": "Internal application zone (AWS VPC)",
-              "description": "",
-              "isTrustBoundary": true,
-              "hasOpenThreats": false
-            }
-          },
-          {
-            "position": {
-              "x": 1040,
-              "y": 40
-            },
-            "size": {
-              "width": 260,
-              "height": 780
-            },
-            "attrs": {
-              "headerText": {
-                "text": "Cardholder Data Environment (PCI CDE)"
-              },
-              "label": {
-                "text": "Cardholder Data Environment (PCI CDE)"
-              }
-            },
-            "visible": true,
-            "shape": "trust-boundary-box",
-            "zIndex": -1,
-            "id": "817eb186-a3e4-4565-bbf7-3f5c3b36f4ae",
-            "data": {
-              "type": "tm.BoundaryBox",
-              "name": "Cardholder Data Environment (PCI CDE)",
-              "description": "",
-              "isTrustBoundary": true,
-              "hasOpenThreats": false
-            }
-          },
-          {
-            "position": {
-              "x": 60,
-              "y": 90
-            },
-            "size": {
-              "width": 160,
-              "height": 80
-            },
-            "attrs": {
-              "text": {
-                "text": "Customer"
-              },
-              "body": {
-                "stroke": "red",
-                "strokeWidth": 1.5,
-                "strokeDasharray": ""
-              }
-            },
-            "visible": true,
-            "shape": "actor",
-            "zIndex": 2,
-            "id": "cb823ffd-2396-4bf8-b538-a0b0ddd67e56",
-            "data": {
-              "type": "tm.Actor",
-              "name": "Customer",
-              "description": "Card holder using HelixPay",
-              "outOfScope": false,
-              "reasonOutOfScope": "",
-              "threats": [
-                {
-                  "id": "5d3ee630-71d0-47f1-be4a-edd6c88227f0",
-                  "title": "Customer phished for card data / credentials",
-                  "status": "Open",
-                  "severity": "Medium",
-                  "type": "Spoofing",
-                  "description": "Lookalike sites, SMS or email lure customers into entering card details or app credentials.",
-                  "mitigation": "Customer awareness messaging, DMARC/BIMI on email domains, brand-domain takedown service, step-up auth for new devices.",
-                  "modelType": "STRIDE",
-                  "new": false,
-                  "number": 1,
-                  "score": ""
-                }
-              ],
-              "hasOpenThreats": true,
-              "providesAuthentication": false
-            }
-          },
-          {
-            "position": {
-              "x": 85,
-              "y": 260
-            },
-            "size": {
-              "width": 110,
-              "height": 110
-            },
-            "attrs": {
-              "text": {
-                "text": "Customer app (web + mobile)"
-              },
-              "body": {
-                "stroke": "red",
-                "strokeWidth": 1.5,
-                "strokeDasharray": ""
-              }
-            },
-            "visible": true,
-            "shape": "process",
-            "zIndex": 2,
-            "id": "275e15a6-3f3f-4ac9-ad95-d29632259216",
-            "data": {
-              "type": "tm.Process",
-              "name": "Customer app (web + mobile)",
-              "description": "Checkout and account UI running on the customer's device",
-              "outOfScope": false,
-              "reasonOutOfScope": "",
-              "threats": [
-                {
-                  "id": "2fec5a4e-0863-4d23-8622-5e5136908e97",
-                  "title": "Client-side skimming via XSS or third-party script",
-                  "status": "Open",
-                  "severity": "High",
-                  "type": "Information disclosure",
-                  "description": "Injected JavaScript on the checkout page captures card numbers as they are typed (Magecart-style). Whiteboard: XSS.",
-                  "mitigation": "Output encoding, strict Content-Security-Policy, Subresource Integrity, script inventory and change detection (PCI DSS 6.4.3 / 11.6.1), hosted payment fields / iframe tokenisation.",
-                  "modelType": "STRIDE",
-                  "new": false,
-                  "number": 2,
-                  "score": ""
-                }
-              ],
-              "hasOpenThreats": true,
-              "privilegeLevel": ""
-            }
-          },
-          {
-            "position": {
-              "x": 60,
-              "y": 560
-            },
-            "size": {
-              "width": 160,
-              "height": 80
-            },
-            "attrs": {
-              "text": {
-                "text": "Administrators (16 accounts)"
-              },
-              "body": {
-                "stroke": "red",
-                "strokeWidth": 1.5,
-                "strokeDasharray": ""
-              }
-            },
-            "visible": true,
-            "shape": "actor",
-            "zIndex": 2,
-            "id": "a573e481-a180-41fa-ab30-06d6adf161d4",
-            "data": {
-              "type": "tm.Actor",
-              "name": "Administrators (16 accounts)",
-              "description": "Ops, DB and cloud admins",
-              "outOfScope": false,
-              "reasonOutOfScope": "",
-              "threats": [
-                {
-                  "id": "c0393487-d63e-44e8-94da-50ce62a75562",
-                  "title": "Admin account takeover via AiTM phishing + weak MFA",
-                  "status": "Open",
-                  "severity": "Critical",
-                  "type": "Spoofing",
-                  "description": "Phishing AND weak MFA AND MITM: adversary-in-the-middle kit steals session cookie, or MFA push fatigue gets a prompt accepted. 16 standing admin accounts multiply the targets.",
-                  "mitigation": "Phishing-resistant MFA (FIDO2/passkeys), number matching, cut standing admins via just-in-time PAM, conditional access, session binding.",
-                  "modelType": "STRIDE",
-                  "new": false,
-                  "number": 3,
-                  "score": ""
-                },
-                {
-                  "id": "63843293-6c88-4394-841c-7f8b2b63e51d",
-                  "title": "Malicious or careless insider",
-                  "status": "Open",
-                  "severity": "Medium",
-                  "type": "Elevation of privilege",
-                  "description": "An admin abuses or mishandles standing access to the cardholder DB.",
-                  "mitigation": "Least privilege, dual control for CDE access, session recording, bulk-read alerting.",
-                  "modelType": "STRIDE",
-                  "new": false,
-                  "number": 4,
-                  "score": ""
-                }
-              ],
-              "hasOpenThreats": true,
-              "providesAuthentication": false
-            }
-          },
-          {
-            "position": {
-              "x": 375,
-              "y": 260
-            },
-            "size": {
-              "width": 110,
-              "height": 110
-            },
-            "attrs": {
-              "text": {
-                "text": "API gateway"
-              },
-              "body": {
-                "stroke": "red",
-                "strokeWidth": 1.5,
-                "strokeDasharray": ""
-              }
-            },
-            "visible": true,
-            "shape": "process",
-            "zIndex": 2,
-            "id": "1a0713a8-1e39-4675-8c65-ccf35cbbabad",
-            "data": {
-              "type": "tm.Process",
-              "name": "API gateway",
-              "description": "Single public entry point",
-              "outOfScope": false,
-              "reasonOutOfScope": "",
-              "threats": [
-                {
-                  "id": "2ed4f528-7ac6-4a00-ad54-d59c6b9b1bb6",
-                  "title": "Broken object-level authorisation (BOLA)",
-                  "status": "Open",
-                  "severity": "High",
-                  "type": "Elevation of privilege",
-                  "description": "Changing an object ID in an API call returns another customer's data or payment methods.",
-                  "mitigation": "Object-level authorisation checks in every service, API security testing (OWASP API Top 10), schema validation at the gateway.",
-                  "modelType": "STRIDE",
-                  "new": false,
-                  "number": 5,
-                  "score": ""
-                },
-                {
-                  "id": "32d9b3ba-5b69-4a3d-a322-956f093a57e3",
-                  "title": "Credential stuffing against customer login",
-                  "status": "Open",
-                  "severity": "Medium",
-                  "type": "Spoofing",
-                  "description": "Reused passwords tried at scale to take over customer accounts.",
-                  "mitigation": "Rate limiting, bot detection, breached-password checks, customer MFA / passkeys.",
-                  "modelType": "STRIDE",
-                  "new": false,
-                  "number": 6,
-                  "score": ""
-                }
-              ],
-              "hasOpenThreats": true,
-              "privilegeLevel": ""
-            }
-          },
-          {
-            "position": {
-              "x": 375,
-              "y": 560
-            },
-            "size": {
-              "width": 110,
-              "height": 110
-            },
-            "attrs": {
-              "text": {
-                "text": "Staging / API server"
-              },
-              "body": {
-                "stroke": "red",
-                "strokeWidth": 1.5,
-                "strokeDasharray": ""
-              }
-            },
-            "visible": true,
-            "shape": "process",
-            "zIndex": 2,
-            "id": "7ab26f81-60d6-48db-b8da-feceda97bd57",
-            "data": {
-              "type": "tm.Process",
-              "name": "Staging / API server",
-              "description": "Pre-production environment, exposed to the internet",
-              "outOfScope": false,
-              "reasonOutOfScope": "",
-              "threats": [
-                {
-                  "id": "37d9cb44-f362-4b66-8a4d-ffa3386e9655",
-                  "title": "Exposed staging server with production data or shared secrets",
-                  "status": "Open",
-                  "severity": "High",
-                  "type": "Information disclosure",
-                  "description": "Staging is internet-reachable, less hardened, and may hold copied production card data or the same credentials as prod; foothold for lateral movement.",
-                  "mitigation": "Remove public exposure (VPN/allow-list), synthetic or tokenised test data only, separate AWS accounts and secrets per environment.",
-                  "modelType": "STRIDE",
-                  "new": false,
-                  "number": 7,
-                  "score": ""
-                }
-              ],
-              "hasOpenThreats": true,
-              "privilegeLevel": "low"
-            }
-          },
-          {
-            "position": {
-              "x": 640,
-              "y": 120
-            },
-            "size": {
-              "width": 110,
-              "height": 110
-            },
-            "attrs": {
-              "text": {
-                "text": "Microservices"
-              },
-              "body": {
-                "stroke": "red",
-                "strokeWidth": 1.5,
-                "strokeDasharray": ""
-              }
-            },
-            "visible": true,
-            "shape": "process",
-            "zIndex": 2,
-            "id": "1f325342-e2f1-4dfb-979c-918afb9d43de",
-            "data": {
-              "type": "tm.Process",
-              "name": "Microservices",
-              "description": "Orders, users, notifications",
-              "outOfScope": false,
-              "reasonOutOfScope": "",
-              "threats": [
-                {
-                  "id": "904f8091-8ed6-4b6f-bc26-5211bf12c199",
-                  "title": "Lateral movement through implicit service trust",
-                  "status": "Open",
-                  "severity": "High",
-                  "type": "Elevation of privilege",
-                  "description": "Flat network and no service-to-service auth let an attacker on any service reach the cardholder DB.",
-                  "mitigation": "Network segmentation / security groups, mTLS with service identity, per-service DB credentials with least privilege.",
-                  "modelType": "STRIDE",
-                  "new": false,
-                  "number": 8,
-                  "score": ""
-                }
-              ],
-              "hasOpenThreats": true,
-              "privilegeLevel": ""
-            }
-          },
-          {
-            "position": {
-              "x": 640,
-              "y": 330
-            },
-            "size": {
-              "width": 110,
-              "height": 110
-            },
-            "attrs": {
-              "text": {
-                "text": "Payment server (Java)"
-              },
-              "body": {
-                "stroke": "red",
-                "strokeWidth": 1.5,
-                "strokeDasharray": ""
-              }
-            },
-            "visible": true,
-            "shape": "process",
-            "zIndex": 2,
-            "id": "318e039a-4dc5-48f3-8662-f59af6e23080",
-            "data": {
-              "type": "tm.Process",
-              "name": "Payment server (Java)",
-              "description": "Authorises payments with the acquirer",
-              "outOfScope": false,
-              "reasonOutOfScope": "",
-              "threats": [
-                {
-                  "id": "b6009e28-6ea5-4dc0-9ce8-6a54103dd4c3",
-                  "title": "Log4Shell remote code execution",
-                  "status": "Open",
-                  "severity": "Critical",
-                  "type": "Elevation of privilege",
-                  "description": "Unpatched Log4j (CVE-2021-44228) lets an attacker run code on the payment server via a crafted string in any logged field.",
-                  "mitigation": "Patch Log4j >= 2.17.1, SBOM + dependency scanning, WAF virtual patch, block outbound LDAP/JNDI egress.",
-                  "modelType": "STRIDE",
-                  "new": false,
-                  "number": 9,
-                  "score": ""
-                },
-                {
-                  "id": "2efd34bf-b3c6-4dec-a0c9-4b69961623f3",
-                  "title": "Card data scraped from memory or logs",
-                  "status": "Open",
-                  "severity": "High",
-                  "type": "Information disclosure",
-                  "description": "With code execution, PANs in memory or accidentally logged are harvested directly - DB access is not needed.",
-                  "mitigation": "Never log PAN, mask in logs, tokenise as early as possible, file-integrity and EDR monitoring.",
-                  "modelType": "STRIDE",
-                  "new": false,
-                  "number": 10,
-                  "score": ""
-                }
-              ],
-              "hasOpenThreats": true,
-              "privilegeLevel": ""
-            }
-          },
-          {
-            "position": {
-              "x": 850,
-              "y": 520
-            },
-            "size": {
-              "width": 110,
-              "height": 110
-            },
-            "attrs": {
-              "text": {
-                "text": "Identity provider + MFA"
-              },
-              "body": {
-                "stroke": "red",
-                "strokeWidth": 1.5,
-                "strokeDasharray": ""
-              }
-            },
-            "visible": true,
-            "shape": "process",
-            "zIndex": 2,
-            "id": "e9c4541b-0599-4499-b8dd-9479da73e83b",
-            "data": {
-              "type": "tm.Process",
-              "name": "Identity provider + MFA",
-              "description": "Admin and staff authentication",
-              "outOfScope": false,
-              "reasonOutOfScope": "",
-              "threats": [
-                {
-                  "id": "4c5e5742-8d9e-4079-8941-ace688cfe95c",
-                  "title": "MFA bypass",
-                  "status": "Open",
-                  "severity": "High",
-                  "type": "Spoofing",
-                  "description": "SMS/OTP/push MFA is phishable and fatigue-prone.",
-                  "mitigation": "Enforce FIDO2/WebAuthn for all privileged users; disable SMS fallback.",
-                  "modelType": "STRIDE",
-                  "new": false,
-                  "number": 11,
-                  "score": ""
-                }
-              ],
-              "hasOpenThreats": true,
-              "privilegeLevel": ""
-            }
-          },
-          {
-            "position": {
-              "x": 850,
-              "y": 690
-            },
-            "size": {
-              "width": 110,
-              "height": 110
-            },
-            "attrs": {
-              "text": {
-                "text": "Jenkins CI/CD"
-              },
-              "body": {
-                "stroke": "red",
-                "strokeWidth": 1.5,
-                "strokeDasharray": ""
-              }
-            },
-            "visible": true,
-            "shape": "process",
-            "zIndex": 2,
-            "id": "d92a9f66-e738-4040-a306-5821f0be24a9",
-            "data": {
-              "type": "tm.Process",
-              "name": "Jenkins CI/CD",
-              "description": "Builds and deploys all services; holds deploy secrets",
-              "outOfScope": false,
-              "reasonOutOfScope": "",
-              "threats": [
-                {
-                  "id": "2b62b098-4b98-46d0-a6ab-060113060434",
-                  "title": "Pipeline compromise / secrets theft",
-                  "status": "Open",
-                  "severity": "High",
-                  "type": "Tampering",
-                  "description": "Exposed Jenkins or weak auth lets an attacker steal stored credentials or push a backdoored build to the payment server (privilege escalation).",
-                  "mitigation": "Private network only, SSO + MFA, secrets in a vault with short-lived tokens, signed builds, plugin hygiene, least-privilege deploy roles.",
-                  "modelType": "STRIDE",
-                  "new": false,
-                  "number": 12,
-                  "score": ""
-                }
-              ],
-              "hasOpenThreats": true,
-              "privilegeLevel": "high"
-            }
-          },
-          {
-            "position": {
-              "x": 1090,
-              "y": 330
-            },
-            "size": {
-              "width": 160,
-              "height": 80
-            },
-            "attrs": {
-              "text": {
-                "text": "Cardholder database"
-              },
-              "body": {
-                "stroke": "red",
-                "strokeWidth": 1.5,
-                "strokeDasharray": ""
-              }
-            },
-            "visible": true,
-            "shape": "store",
-            "zIndex": 2,
-            "id": "1d7b9180-bc12-4647-a46a-ed2b3152af6a",
-            "data": {
-              "type": "tm.Store",
-              "name": "Cardholder database",
-              "description": "PAN, expiry, customer PII - crown jewel",
-              "outOfScope": false,
-              "reasonOutOfScope": "",
-              "threats": [
-                {
-                  "id": "e17be684-1a31-4fc6-982a-f2c203b2a5d8",
-                  "title": "Bulk exfiltration of card data",
-                  "status": "Open",
-                  "severity": "Critical",
-                  "type": "Information disclosure",
-                  "description": "Any path that reaches DB access (admin, lateral movement, staging, cloud exposure) can dump stored PANs; damage depends on whether data is tokenised/encrypted.",
-                  "mitigation": "Tokenise or encrypt PAN with KMS/HSM-held keys, column-level access, no CVV storage, egress controls.",
-                  "modelType": "STRIDE",
-                  "new": false,
-                  "number": 13,
-                  "score": ""
-                },
-                {
-                  "id": "15f9d26c-be15-404d-a7b3-16a90726f53c",
-                  "title": "Undetected bulk reads",
-                  "status": "Open",
-                  "severity": "Medium",
-                  "type": "Repudiation",
-                  "description": "Weak logging means a dump is not noticed or attributable.",
-                  "mitigation": "DB activity monitoring, alerts on bulk SELECTs, immutable logs, CloudTrail + GuardDuty.",
-                  "modelType": "STRIDE",
-                  "new": false,
-                  "number": 14,
-                  "score": ""
-                }
-              ],
-              "hasOpenThreats": true,
-              "isALog": false,
-              "storesCredentials": false,
-              "isEncrypted": false,
-              "isSigned": false
-            }
-          },
-          {
-            "position": {
-              "x": 1090,
-              "y": 600
-            },
-            "size": {
-              "width": 160,
-              "height": 80
-            },
-            "attrs": {
-              "text": {
-                "text": "Backups & snapshots (S3 / RDS)"
-              },
-              "body": {
-                "stroke": "red",
-                "strokeWidth": 1.5,
-                "strokeDasharray": ""
-              }
-            },
-            "visible": true,
-            "shape": "store",
-            "zIndex": 2,
-            "id": "6261f5f5-0bd6-434a-9030-e3f78451ff9e",
-            "data": {
-              "type": "tm.Store",
-              "name": "Backups & snapshots (S3 / RDS)",
-              "description": "DB backups, snapshots, exports",
-              "outOfScope": false,
-              "reasonOutOfScope": "",
-              "threats": [
-                {
-                  "id": "7829cbe4-c768-4f7b-a82d-3513831fd033",
-                  "title": "Public bucket or snapshot exposes card data",
-                  "status": "Open",
-                  "severity": "Critical",
-                  "type": "Information disclosure",
-                  "description": "Security misconfiguration makes AWS storage or the DB security group publicly reachable.",
-                  "mitigation": "S3 Block Public Access at account level, encrypted private snapshots, AWS Config / CSPM rules, IaC scanning.",
-                  "modelType": "STRIDE",
-                  "new": false,
-                  "number": 15,
-                  "score": ""
-                }
-              ],
-              "hasOpenThreats": true,
-              "isALog": false,
-              "storesCredentials": false,
-              "isEncrypted": false,
-              "isSigned": false
-            }
-          },
-          {
-            "position": {
-              "x": 1340,
-              "y": 330
-            },
-            "size": {
-              "width": 160,
-              "height": 80
-            },
-            "attrs": {
-              "text": {
-                "text": "Acquirer / card network"
-              },
-              "body": {
-                "stroke": "#333333",
-                "strokeWidth": 1.5,
-                "strokeDasharray": ""
-              }
-            },
-            "visible": true,
-            "shape": "actor",
-            "zIndex": 2,
-            "id": "3dbcf34a-a8d3-4e39-a186-ecf93fbeb7d3",
-            "data": {
-              "type": "tm.Actor",
-              "name": "Acquirer / card network",
-              "description": "External payment processor",
-              "outOfScope": false,
-              "reasonOutOfScope": "",
-              "threats": [],
-              "hasOpenThreats": false,
-              "providesAuthentication": false
-            }
-          },
-          {
-            "shape": "flow",
-            "zIndex": 10,
-            "id": "812488de-e77d-43b5-b068-a63393d0c063",
-            "attrs": {
-              "line": {
-                "stroke": "#333333",
-                "strokeWidth": 1.5,
-                "targetMarker": {
-                  "name": "block"
-                },
-                "sourceMarker": {
-                  "name": ""
-                },
-                "strokeDasharray": ""
-              }
-            },
-            "labels": [
-              {
-                "markup": [
-                  {
-                    "tagName": "ellipse",
-                    "selector": "labelBody"
-                  },
-                  {
-                    "tagName": "text",
-                    "selector": "labelText"
-                  }
-                ],
-                "attrs": {
-                  "labelText": {
-                    "text": "Card details entered",
-                    "textAnchor": "middle",
-                    "textVerticalAnchor": "middle"
-                  },
-                  "labelBody": {
-                    "ref": "labelText",
-                    "refRx": "50%",
-                    "refRy": "60%",
-                    "fill": "#fff",
-                    "strokeWidth": 0
-                  }
-                },
-                "position": {
-                  "distance": 0.5,
-                  "args": {
-                    "keepGradient": true,
-                    "ensureLegibility": true
-                  }
-                }
-              }
-            ],
-            "source": {
-              "cell": "cb823ffd-2396-4bf8-b538-a0b0ddd67e56"
-            },
-            "target": {
-              "cell": "275e15a6-3f3f-4ac9-ad95-d29632259216"
-            },
-            "vertices": [],
-            "data": {
-              "type": "tm.Flow",
-              "name": "Card details entered",
-              "description": "",
-              "outOfScope": false,
-              "reasonOutOfScope": "",
-              "protocol": "UI",
-              "isEncrypted": true,
-              "isPublicNetwork": true,
-              "isBidirectional": false,
-              "threats": [],
-              "hasOpenThreats": false
-            }
-          },
-          {
-            "shape": "flow",
-            "zIndex": 10,
-            "id": "5ed9bb7a-635c-42c0-a7be-520e6e5ee90e",
-            "attrs": {
-              "line": {
-                "stroke": "#333333",
-                "strokeWidth": 1.5,
-                "targetMarker": {
-                  "name": "block"
-                },
-                "sourceMarker": {
-                  "name": ""
-                },
-                "strokeDasharray": ""
-              }
-            },
-            "labels": [
-              {
-                "markup": [
-                  {
-                    "tagName": "ellipse",
-                    "selector": "labelBody"
-                  },
-                  {
-                    "tagName": "text",
-                    "selector": "labelText"
-                  }
-                ],
-                "attrs": {
-                  "labelText": {
-                    "text": "Checkout API call",
-                    "textAnchor": "middle",
-                    "textVerticalAnchor": "middle"
-                  },
-                  "labelBody": {
-                    "ref": "labelText",
-                    "refRx": "50%",
-                    "refRy": "60%",
-                    "fill": "#fff",
-                    "strokeWidth": 0
-                  }
-                },
-                "position": {
-                  "distance": 0.5,
-                  "args": {
-                    "keepGradient": true,
-                    "ensureLegibility": true
-                  }
-                }
-              }
-            ],
-            "source": {
-              "cell": "275e15a6-3f3f-4ac9-ad95-d29632259216"
-            },
-            "target": {
-              "cell": "1a0713a8-1e39-4675-8c65-ccf35cbbabad"
-            },
-            "vertices": [],
-            "data": {
-              "type": "tm.Flow",
-              "name": "Checkout API call",
-              "description": "",
-              "outOfScope": false,
-              "reasonOutOfScope": "",
-              "protocol": "HTTPS",
-              "isEncrypted": true,
-              "isPublicNetwork": true,
-              "isBidirectional": false,
-              "threats": [],
-              "hasOpenThreats": false
-            }
-          },
-          {
-            "shape": "flow",
-            "zIndex": 10,
-            "id": "69689ca5-e674-4bd4-b24a-24b9ea0a7eba",
-            "attrs": {
-              "line": {
-                "stroke": "#333333",
-                "strokeWidth": 1.5,
-                "targetMarker": {
-                  "name": "block"
-                },
-                "sourceMarker": {
-                  "name": ""
-                },
-                "strokeDasharray": ""
-              }
-            },
-            "labels": [
-              {
-                "markup": [
-                  {
-                    "tagName": "ellipse",
-                    "selector": "labelBody"
-                  },
-                  {
-                    "tagName": "text",
-                    "selector": "labelText"
-                  }
-                ],
-                "attrs": {
-                  "labelText": {
-                    "text": "Customer requests",
-                    "textAnchor": "middle",
-                    "textVerticalAnchor": "middle"
-                  },
-                  "labelBody": {
-                    "ref": "labelText",
-                    "refRx": "50%",
-                    "refRy": "60%",
-                    "fill": "#fff",
-                    "strokeWidth": 0
-                  }
-                },
-                "position": {
-                  "distance": 0.5,
-                  "args": {
-                    "keepGradient": true,
-                    "ensureLegibility": true
-                  }
-                }
-              }
-            ],
-            "source": {
-              "cell": "1a0713a8-1e39-4675-8c65-ccf35cbbabad"
-            },
-            "target": {
-              "cell": "1f325342-e2f1-4dfb-979c-918afb9d43de"
-            },
-            "vertices": [],
-            "data": {
-              "type": "tm.Flow",
-              "name": "Customer requests",
-              "description": "",
-              "outOfScope": false,
-              "reasonOutOfScope": "",
-              "protocol": "HTTPS",
-              "isEncrypted": true,
-              "isPublicNetwork": false,
-              "isBidirectional": false,
-              "threats": [],
-              "hasOpenThreats": false
-            }
-          },
-          {
-            "shape": "flow",
-            "zIndex": 10,
-            "id": "f5844352-fe77-4277-b561-7235c724fd7c",
-            "attrs": {
-              "line": {
-                "stroke": "red",
-                "strokeWidth": 1.5,
-                "targetMarker": {
-                  "name": "block"
-                },
-                "sourceMarker": {
-                  "name": ""
-                },
-                "strokeDasharray": ""
-              }
-            },
-            "labels": [
-              {
-                "markup": [
-                  {
-                    "tagName": "ellipse",
-                    "selector": "labelBody"
-                  },
-                  {
-                    "tagName": "text",
-                    "selector": "labelText"
-                  }
-                ],
-                "attrs": {
-                  "labelText": {
-                    "text": "Payment request (PAN)",
-                    "textAnchor": "middle",
-                    "textVerticalAnchor": "middle"
-                  },
-                  "labelBody": {
-                    "ref": "labelText",
-                    "refRx": "50%",
-                    "refRy": "60%",
-                    "fill": "#fff",
-                    "strokeWidth": 0
-                  }
-                },
-                "position": {
-                  "distance": 0.5,
-                  "args": {
-                    "keepGradient": true,
-                    "ensureLegibility": true
-                  }
-                }
-              }
-            ],
-            "source": {
-              "cell": "1a0713a8-1e39-4675-8c65-ccf35cbbabad"
-            },
-            "target": {
-              "cell": "318e039a-4dc5-48f3-8662-f59af6e23080"
-            },
-            "vertices": [],
-            "data": {
-              "type": "tm.Flow",
-              "name": "Payment request (PAN)",
-              "description": "",
-              "outOfScope": false,
-              "reasonOutOfScope": "",
-              "protocol": "HTTPS",
-              "isEncrypted": true,
-              "isPublicNetwork": false,
-              "isBidirectional": false,
-              "threats": [
-                {
-                  "id": "b85b3066-9be0-4cd5-8585-d6e7e9f933ce",
-                  "title": "Interception on internal hop",
-                  "status": "Open",
-                  "severity": "Medium",
-                  "type": "Information disclosure",
-                  "description": "If TLS terminates at the gateway, PANs cross the VPC in clear.",
-                  "mitigation": "TLS/mTLS end to end inside the VPC.",
-                  "modelType": "STRIDE",
-                  "new": false,
-                  "number": 16,
-                  "score": ""
-                }
-              ],
-              "hasOpenThreats": true
-            }
-          },
-          {
-            "shape": "flow",
-            "zIndex": 10,
-            "id": "d4f14013-ac0d-484d-bd69-63ead9f0304d",
-            "attrs": {
-              "line": {
-                "stroke": "#333333",
-                "strokeWidth": 1.5,
-                "targetMarker": {
-                  "name": "block"
-                },
-                "sourceMarker": {
-                  "name": ""
-                },
-                "strokeDasharray": ""
-              }
-            },
-            "labels": [
-              {
-                "markup": [
-                  {
-                    "tagName": "ellipse",
-                    "selector": "labelBody"
-                  },
-                  {
-                    "tagName": "text",
-                    "selector": "labelText"
-                  }
-                ],
-                "attrs": {
-                  "labelText": {
-                    "text": "Store / read card data",
-                    "textAnchor": "middle",
-                    "textVerticalAnchor": "middle"
-                  },
-                  "labelBody": {
-                    "ref": "labelText",
-                    "refRx": "50%",
-                    "refRy": "60%",
-                    "fill": "#fff",
-                    "strokeWidth": 0
-                  }
-                },
-                "position": {
-                  "distance": 0.5,
-                  "args": {
-                    "keepGradient": true,
-                    "ensureLegibility": true
-                  }
-                }
-              }
-            ],
-            "source": {
-              "cell": "318e039a-4dc5-48f3-8662-f59af6e23080"
-            },
-            "target": {
-              "cell": "1d7b9180-bc12-4647-a46a-ed2b3152af6a"
-            },
-            "vertices": [],
-            "data": {
-              "type": "tm.Flow",
-              "name": "Store / read card data",
-              "description": "",
-              "outOfScope": false,
-              "reasonOutOfScope": "",
-              "protocol": "SQL over TLS",
-              "isEncrypted": true,
-              "isPublicNetwork": false,
-              "isBidirectional": false,
-              "threats": [],
-              "hasOpenThreats": false
-            }
-          },
-          {
-            "shape": "flow",
-            "zIndex": 10,
-            "id": "a9897cd4-e65c-4d19-8cce-a07f2f83d405",
-            "attrs": {
-              "line": {
-                "stroke": "#333333",
-                "strokeWidth": 1.5,
-                "targetMarker": {
-                  "name": "block"
-                },
-                "sourceMarker": {
-                  "name": ""
-                },
-                "strokeDasharray": ""
-              }
-            },
-            "labels": [
-              {
-                "markup": [
-                  {
-                    "tagName": "ellipse",
-                    "selector": "labelBody"
-                  },
-                  {
-                    "tagName": "text",
-                    "selector": "labelText"
-                  }
-                ],
-                "attrs": {
-                  "labelText": {
-                    "text": "Read customer records",
-                    "textAnchor": "middle",
-                    "textVerticalAnchor": "middle"
-                  },
-                  "labelBody": {
-                    "ref": "labelText",
-                    "refRx": "50%",
-                    "refRy": "60%",
-                    "fill": "#fff",
-                    "strokeWidth": 0
-                  }
-                },
-                "position": {
-                  "distance": 0.5,
-                  "args": {
-                    "keepGradient": true,
-                    "ensureLegibility": true
-                  }
-                }
-              }
-            ],
-            "source": {
-              "cell": "1f325342-e2f1-4dfb-979c-918afb9d43de"
-            },
-            "target": {
-              "cell": "1d7b9180-bc12-4647-a46a-ed2b3152af6a"
-            },
-            "vertices": [],
-            "data": {
-              "type": "tm.Flow",
-              "name": "Read customer records",
-              "description": "",
-              "outOfScope": false,
-              "reasonOutOfScope": "",
-              "protocol": "SQL",
-              "isEncrypted": true,
-              "isPublicNetwork": false,
-              "isBidirectional": false,
-              "threats": [],
-              "hasOpenThreats": false
-            }
-          },
-          {
-            "shape": "flow",
-            "zIndex": 10,
-            "id": "d55b0796-20b6-4d18-8fe7-ded5c8ff16a2",
-            "attrs": {
-              "line": {
-                "stroke": "#333333",
-                "strokeWidth": 1.5,
-                "targetMarker": {
-                  "name": "block"
-                },
-                "sourceMarker": {
-                  "name": ""
-                },
-                "strokeDasharray": ""
-              }
-            },
-            "labels": [
-              {
-                "markup": [
-                  {
-                    "tagName": "ellipse",
-                    "selector": "labelBody"
-                  },
-                  {
-                    "tagName": "text",
-                    "selector": "labelText"
-                  }
-                ],
-                "attrs": {
-                  "labelText": {
-                    "text": "Authorisation request",
-                    "textAnchor": "middle",
-                    "textVerticalAnchor": "middle"
-                  },
-                  "labelBody": {
-                    "ref": "labelText",
-                    "refRx": "50%",
-                    "refRy": "60%",
-                    "fill": "#fff",
-                    "strokeWidth": 0
-                  }
-                },
-                "position": {
-                  "distance": 0.5,
-                  "args": {
-                    "keepGradient": true,
-                    "ensureLegibility": true
-                  }
-                }
-              }
-            ],
-            "source": {
-              "cell": "318e039a-4dc5-48f3-8662-f59af6e23080"
-            },
-            "target": {
-              "cell": "3dbcf34a-a8d3-4e39-a186-ecf93fbeb7d3"
-            },
-            "vertices": [],
-            "data": {
-              "type": "tm.Flow",
-              "name": "Authorisation request",
-              "description": "",
-              "outOfScope": false,
-              "reasonOutOfScope": "",
-              "protocol": "ISO 8583 / TLS",
-              "isEncrypted": true,
-              "isPublicNetwork": true,
-              "isBidirectional": false,
-              "threats": [],
-              "hasOpenThreats": false
-            }
-          },
-          {
-            "shape": "flow",
-            "zIndex": 10,
-            "id": "1c59afa3-13d5-42d6-9bdf-b2a7e7bb3bd1",
-            "attrs": {
-              "line": {
-                "stroke": "red",
-                "strokeWidth": 1.5,
-                "targetMarker": {
-                  "name": "block"
-                },
-                "sourceMarker": {
-                  "name": ""
-                },
-                "strokeDasharray": ""
-              }
-            },
-            "labels": [
-              {
-                "markup": [
-                  {
-                    "tagName": "ellipse",
-                    "selector": "labelBody"
-                  },
-                  {
-                    "tagName": "text",
-                    "selector": "labelText"
-                  }
-                ],
-                "attrs": {
-                  "labelText": {
-                    "text": "Test data sync / shared creds",
-                    "textAnchor": "middle",
-                    "textVerticalAnchor": "middle"
-                  },
-                  "labelBody": {
-                    "ref": "labelText",
-                    "refRx": "50%",
-                    "refRy": "60%",
-                    "fill": "#fff",
-                    "strokeWidth": 0
-                  }
-                },
-                "position": {
-                  "distance": 0.5,
-                  "args": {
-                    "keepGradient": true,
-                    "ensureLegibility": true
-                  }
-                }
-              }
-            ],
-            "source": {
-              "cell": "7ab26f81-60d6-48db-b8da-feceda97bd57"
-            },
-            "target": {
-              "cell": "1d7b9180-bc12-4647-a46a-ed2b3152af6a"
-            },
-            "vertices": [],
-            "data": {
-              "type": "tm.Flow",
-              "name": "Test data sync / shared creds",
-              "description": "",
-              "outOfScope": false,
-              "reasonOutOfScope": "",
-              "protocol": "SQL",
-              "isEncrypted": true,
-              "isPublicNetwork": false,
-              "isBidirectional": false,
-              "threats": [
-                {
-                  "id": "766ee701-9135-4998-aca2-98fcc772531f",
-                  "title": "Staging path into production data",
-                  "status": "Open",
-                  "severity": "High",
-                  "type": "Elevation of privilege",
-                  "description": "Shared credentials or data sync give the exposed staging server a route to the CDE.",
-                  "mitigation": "No network path from staging to prod; separate credentials.",
-                  "modelType": "STRIDE",
-                  "new": false,
-                  "number": 17,
-                  "score": ""
-                }
-              ],
-              "hasOpenThreats": true
-            }
-          },
-          {
-            "shape": "flow",
-            "zIndex": 10,
-            "id": "399a871c-1e95-4fee-8a6f-c9875107407c",
-            "attrs": {
-              "line": {
-                "stroke": "red",
-                "strokeWidth": 1.5,
-                "targetMarker": {
-                  "name": "block"
-                },
-                "sourceMarker": {
-                  "name": ""
-                },
-                "strokeDasharray": ""
-              }
-            },
-            "labels": [
-              {
-                "markup": [
-                  {
-                    "tagName": "ellipse",
-                    "selector": "labelBody"
-                  },
-                  {
-                    "tagName": "text",
-                    "selector": "labelText"
-                  }
-                ],
-                "attrs": {
-                  "labelText": {
-                    "text": "Admin login + MFA",
-                    "textAnchor": "middle",
-                    "textVerticalAnchor": "middle"
-                  },
-                  "labelBody": {
-                    "ref": "labelText",
-                    "refRx": "50%",
-                    "refRy": "60%",
-                    "fill": "#fff",
-                    "strokeWidth": 0
-                  }
-                },
-                "position": {
-                  "distance": 0.5,
-                  "args": {
-                    "keepGradient": true,
-                    "ensureLegibility": true
-                  }
-                }
-              }
-            ],
-            "source": {
-              "cell": "a573e481-a180-41fa-ab30-06d6adf161d4"
-            },
-            "target": {
-              "cell": "e9c4541b-0599-4499-b8dd-9479da73e83b"
-            },
-            "vertices": [],
-            "data": {
-              "type": "tm.Flow",
-              "name": "Admin login + MFA",
-              "description": "",
-              "outOfScope": false,
-              "reasonOutOfScope": "",
-              "protocol": "HTTPS",
-              "isEncrypted": true,
-              "isPublicNetwork": true,
-              "isBidirectional": false,
-              "threats": [
-                {
-                  "id": "67da5802-917d-4bfa-9c52-488f75ccb19d",
-                  "title": "Session cookie theft (AiTM)",
-                  "status": "Open",
-                  "severity": "Critical",
-                  "type": "Spoofing",
-                  "description": "Reverse-proxy phishing captures the authenticated session.",
-                  "mitigation": "FIDO2, token binding, short sessions, impossible-travel alerts.",
-                  "modelType": "STRIDE",
-                  "new": false,
-                  "number": 18,
-                  "score": ""
-                }
-              ],
-              "hasOpenThreats": true
-            }
-          },
-          {
-            "shape": "flow",
-            "zIndex": 10,
-            "id": "74f87d4d-50c5-44c6-8205-ce9f376305a8",
-            "attrs": {
-              "line": {
-                "stroke": "#333333",
-                "strokeWidth": 1.5,
-                "targetMarker": {
-                  "name": "block"
-                },
-                "sourceMarker": {
-                  "name": ""
-                },
-                "strokeDasharray": ""
-              }
-            },
-            "labels": [
-              {
-                "markup": [
-                  {
-                    "tagName": "ellipse",
-                    "selector": "labelBody"
-                  },
-                  {
-                    "tagName": "text",
-                    "selector": "labelText"
-                  }
-                ],
-                "attrs": {
-                  "labelText": {
-                    "text": "SSO session",
-                    "textAnchor": "middle",
-                    "textVerticalAnchor": "middle"
-                  },
-                  "labelBody": {
-                    "ref": "labelText",
-                    "refRx": "50%",
-                    "refRy": "60%",
-                    "fill": "#fff",
-                    "strokeWidth": 0
-                  }
-                },
-                "position": {
-                  "distance": 0.5,
-                  "args": {
-                    "keepGradient": true,
-                    "ensureLegibility": true
-                  }
-                }
-              }
-            ],
-            "source": {
-              "cell": "e9c4541b-0599-4499-b8dd-9479da73e83b"
-            },
-            "target": {
-              "cell": "d92a9f66-e738-4040-a306-5821f0be24a9"
-            },
-            "vertices": [],
-            "data": {
-              "type": "tm.Flow",
-              "name": "SSO session",
-              "description": "",
-              "outOfScope": false,
-              "reasonOutOfScope": "",
-              "protocol": "OIDC",
-              "isEncrypted": true,
-              "isPublicNetwork": false,
-              "isBidirectional": false,
-              "threats": [],
-              "hasOpenThreats": false
-            }
-          },
-          {
-            "shape": "flow",
-            "zIndex": 10,
-            "id": "11aaf032-930b-4327-a01c-5d7fe59298da",
-            "attrs": {
-              "line": {
-                "stroke": "#333333",
-                "strokeWidth": 1.5,
-                "targetMarker": {
-                  "name": "block"
-                },
-                "sourceMarker": {
-                  "name": ""
-                },
-                "strokeDasharray": ""
-              }
-            },
-            "labels": [
-              {
-                "markup": [
-                  {
-                    "tagName": "ellipse",
-                    "selector": "labelBody"
-                  },
-                  {
-                    "tagName": "text",
-                    "selector": "labelText"
-                  }
-                ],
-                "attrs": {
-                  "labelText": {
-                    "text": "Deploy build",
-                    "textAnchor": "middle",
-                    "textVerticalAnchor": "middle"
-                  },
-                  "labelBody": {
-                    "ref": "labelText",
-                    "refRx": "50%",
-                    "refRy": "60%",
-                    "fill": "#fff",
-                    "strokeWidth": 0
-                  }
-                },
-                "position": {
-                  "distance": 0.5,
-                  "args": {
-                    "keepGradient": true,
-                    "ensureLegibility": true
-                  }
-                }
-              }
-            ],
-            "source": {
-              "cell": "d92a9f66-e738-4040-a306-5821f0be24a9"
-            },
-            "target": {
-              "cell": "318e039a-4dc5-48f3-8662-f59af6e23080"
-            },
-            "vertices": [],
-            "data": {
-              "type": "tm.Flow",
-              "name": "Deploy build",
-              "description": "",
-              "outOfScope": false,
-              "reasonOutOfScope": "",
-              "protocol": "SSH / API",
-              "isEncrypted": true,
-              "isPublicNetwork": false,
-              "isBidirectional": false,
-              "threats": [],
-              "hasOpenThreats": false
-            }
-          },
-          {
-            "shape": "flow",
-            "zIndex": 10,
-            "id": "1ec17215-380e-4354-bacf-1d99018ac727",
-            "attrs": {
-              "line": {
-                "stroke": "#333333",
-                "strokeWidth": 1.5,
-                "targetMarker": {
-                  "name": "block"
-                },
-                "sourceMarker": {
-                  "name": ""
-                },
-                "strokeDasharray": ""
-              }
-            },
-            "labels": [
-              {
-                "markup": [
-                  {
-                    "tagName": "ellipse",
-                    "selector": "labelBody"
-                  },
-                  {
-                    "tagName": "text",
-                    "selector": "labelText"
-                  }
-                ],
-                "attrs": {
-                  "labelText": {
-                    "text": "Deploy build",
-                    "textAnchor": "middle",
-                    "textVerticalAnchor": "middle"
-                  },
-                  "labelBody": {
-                    "ref": "labelText",
-                    "refRx": "50%",
-                    "refRy": "60%",
-                    "fill": "#fff",
-                    "strokeWidth": 0
-                  }
-                },
-                "position": {
-                  "distance": 0.5,
-                  "args": {
-                    "keepGradient": true,
-                    "ensureLegibility": true
-                  }
-                }
-              }
-            ],
-            "source": {
-              "cell": "d92a9f66-e738-4040-a306-5821f0be24a9"
-            },
-            "target": {
-              "cell": "1f325342-e2f1-4dfb-979c-918afb9d43de"
-            },
-            "vertices": [],
-            "data": {
-              "type": "tm.Flow",
-              "name": "Deploy build",
-              "description": "",
-              "outOfScope": false,
-              "reasonOutOfScope": "",
-              "protocol": "SSH / API",
-              "isEncrypted": true,
-              "isPublicNetwork": false,
-              "isBidirectional": false,
-              "threats": [],
-              "hasOpenThreats": false
-            }
-          },
-          {
-            "shape": "flow",
-            "zIndex": 10,
-            "id": "36802722-4466-4882-8481-1657b0fe8933",
-            "attrs": {
-              "line": {
-                "stroke": "#333333",
-                "strokeWidth": 1.5,
-                "targetMarker": {
-                  "name": "block"
-                },
-                "sourceMarker": {
-                  "name": ""
-                },
-                "strokeDasharray": ""
-              }
-            },
-            "labels": [
-              {
-                "markup": [
-                  {
-                    "tagName": "ellipse",
-                    "selector": "labelBody"
-                  },
-                  {
-                    "tagName": "text",
-                    "selector": "labelText"
-                  }
-                ],
-                "attrs": {
-                  "labelText": {
-                    "text": "Backups / snapshots",
-                    "textAnchor": "middle",
-                    "textVerticalAnchor": "middle"
-                  },
-                  "labelBody": {
-                    "ref": "labelText",
-                    "refRx": "50%",
-                    "refRy": "60%",
-                    "fill": "#fff",
-                    "strokeWidth": 0
-                  }
-                },
-                "position": {
-                  "distance": 0.5,
-                  "args": {
-                    "keepGradient": true,
-                    "ensureLegibility": true
-                  }
-                }
-              }
-            ],
-            "source": {
-              "cell": "1d7b9180-bc12-4647-a46a-ed2b3152af6a"
-            },
-            "target": {
-              "cell": "6261f5f5-0bd6-434a-9030-e3f78451ff9e"
-            },
-            "vertices": [],
-            "data": {
-              "type": "tm.Flow",
-              "name": "Backups / snapshots",
-              "description": "",
-              "outOfScope": false,
-              "reasonOutOfScope": "",
-              "protocol": "AWS internal",
-              "isEncrypted": true,
-              "isPublicNetwork": false,
-              "isBidirectional": false,
-              "threats": [],
-              "hasOpenThreats": false
-            }
-          }
-        ]
       }
     ],
-    "diagramTop": 2,
+    "diagramTop": 1,
     "reviewer": "",
     "threatTop": 18
   }
