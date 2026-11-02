@@ -3,12 +3,2058 @@
   "summary": {
     "title": "HelixPay - Steal customer payment data",
     "owner": "",
-    "description": "PASTA threat model for HelixPay. Attacker goal: steal customer payment data. DFD with trust boundaries; STRIDE threats mapped from the team's attack tree (phishing + weak MFA + MITM, 16 admin accounts, Jenkins, Log4j, exposed staging API, microservices lateral movement, AWS misconfiguration, API gateway, client-side XSS).",
+    "description": "How could HelixPay have a customer payment-data breach? Diagram 1 is the team's attack tree (goal = steal customer payment data; AND/OR branches). Diagram 2 maps the same attack paths onto the system with STRIDE threats and mitigations.",
     "id": 0
   },
   "detail": {
     "contributors": [],
     "diagrams": [
+      {
+        "id": 1,
+        "title": "Attack tree - how a data breach happens",
+        "diagramType": "STRIDE",
+        "placeholder": "Attack tree: goal at the top, AND/OR branches below. Arrows point from each attack step to the goal it serves.",
+        "thumbnail": "./public/content/images/thumbnail.stride.jpg",
+        "version": "2.2.0",
+        "cells": [
+          {
+            "position": {
+              "x": 740,
+              "y": 20
+            },
+            "size": {
+              "width": 300,
+              "height": 90
+            },
+            "attrs": {
+              "text": {
+                "text": "GOAL: Steal customer payment data from HelixPay"
+              },
+              "body": {
+                "stroke": "red",
+                "strokeWidth": 2,
+                "strokeDasharray": ""
+              }
+            },
+            "visible": true,
+            "shape": "store",
+            "zIndex": 2,
+            "id": "c907e623-4753-4c87-9a6c-ca0819807cc8",
+            "data": {
+              "type": "tm.Store",
+              "name": "GOAL: Steal customer payment data from HelixPay",
+              "description": "Root of the attack tree (OR): any one branch reaching card data is a breach.",
+              "outOfScope": false,
+              "reasonOutOfScope": "",
+              "threats": [],
+              "hasOpenThreats": false,
+              "isALog": false,
+              "storesCredentials": false,
+              "isEncrypted": false,
+              "isSigned": false
+            }
+          },
+          {
+            "position": {
+              "x": 380,
+              "y": 200
+            },
+            "size": {
+              "width": 170,
+              "height": 100
+            },
+            "attrs": {
+              "text": {
+                "text": "Gain DB access"
+              },
+              "body": {
+                "stroke": "#333333",
+                "strokeWidth": 1.5,
+                "strokeDasharray": ""
+              }
+            },
+            "visible": true,
+            "shape": "process",
+            "zIndex": 2,
+            "id": "4b472641-7174-4cdf-89b2-b3fac066bc5c",
+            "data": {
+              "type": "tm.Process",
+              "name": "Gain DB access",
+              "description": "OR: any child path gives the attacker the cardholder database.",
+              "outOfScope": false,
+              "reasonOutOfScope": "",
+              "threats": [],
+              "hasOpenThreats": false,
+              "privilegeLevel": ""
+            }
+          },
+          {
+            "position": {
+              "x": 810,
+              "y": 200
+            },
+            "size": {
+              "width": 170,
+              "height": 100
+            },
+            "attrs": {
+              "text": {
+                "text": "Compromise payment server"
+              },
+              "body": {
+                "stroke": "#333333",
+                "strokeWidth": 1.5,
+                "strokeDasharray": ""
+              }
+            },
+            "visible": true,
+            "shape": "process",
+            "zIndex": 2,
+            "id": "a00fd979-dc8d-4c12-9307-2bcae11c3bdb",
+            "data": {
+              "type": "tm.Process",
+              "name": "Compromise payment server",
+              "description": "Card data in transit / memory on the payment server.",
+              "outOfScope": false,
+              "reasonOutOfScope": "",
+              "threats": [],
+              "hasOpenThreats": false,
+              "privilegeLevel": ""
+            }
+          },
+          {
+            "position": {
+              "x": 1230,
+              "y": 200
+            },
+            "size": {
+              "width": 170,
+              "height": 100
+            },
+            "attrs": {
+              "text": {
+                "text": "Steal from customers directly"
+              },
+              "body": {
+                "stroke": "#333333",
+                "strokeWidth": 1.5,
+                "strokeDasharray": ""
+              }
+            },
+            "visible": true,
+            "shape": "process",
+            "zIndex": 2,
+            "id": "ca6b5ecd-a178-4d59-9348-5272e4b3e6a7",
+            "data": {
+              "type": "tm.Process",
+              "name": "Steal from customers directly",
+              "description": "OR: attack the customer side instead of HelixPay's servers.",
+              "outOfScope": false,
+              "reasonOutOfScope": "",
+              "threats": [],
+              "hasOpenThreats": false,
+              "privilegeLevel": ""
+            }
+          },
+          {
+            "position": {
+              "x": 120,
+              "y": 400
+            },
+            "size": {
+              "width": 170,
+              "height": 100
+            },
+            "attrs": {
+              "text": {
+                "text": "Take over one of 16 admin accounts"
+              },
+              "body": {
+                "stroke": "#333333",
+                "strokeWidth": 1.5,
+                "strokeDasharray": ""
+              }
+            },
+            "visible": true,
+            "shape": "process",
+            "zIndex": 2,
+            "id": "dffa20ed-754c-4f60-bb5b-1c4cef2eaf42",
+            "data": {
+              "type": "tm.Process",
+              "name": "Take over one of 16 admin accounts",
+              "description": "AND: needs all three children. 16 standing admins = 16 targets.",
+              "outOfScope": false,
+              "reasonOutOfScope": "",
+              "threats": [],
+              "hasOpenThreats": false,
+              "privilegeLevel": ""
+            }
+          },
+          {
+            "position": {
+              "x": 320,
+              "y": 400
+            },
+            "size": {
+              "width": 170,
+              "height": 100
+            },
+            "attrs": {
+              "text": {
+                "text": "Privilege escalation"
+              },
+              "body": {
+                "stroke": "#333333",
+                "strokeWidth": 1.5,
+                "strokeDasharray": ""
+              }
+            },
+            "visible": true,
+            "shape": "process",
+            "zIndex": 2,
+            "id": "4791ecd8-022c-4b3d-bd59-1a651f2fc654",
+            "data": {
+              "type": "tm.Process",
+              "name": "Privilege escalation",
+              "description": "Escalate from a foothold to DB-level rights.",
+              "outOfScope": false,
+              "reasonOutOfScope": "",
+              "threats": [],
+              "hasOpenThreats": false,
+              "privilegeLevel": ""
+            }
+          },
+          {
+            "position": {
+              "x": 520,
+              "y": 400
+            },
+            "size": {
+              "width": 170,
+              "height": 100
+            },
+            "attrs": {
+              "text": {
+                "text": "Lateral movement"
+              },
+              "body": {
+                "stroke": "#333333",
+                "strokeWidth": 1.5,
+                "strokeDasharray": ""
+              }
+            },
+            "visible": true,
+            "shape": "process",
+            "zIndex": 2,
+            "id": "353eb8a5-c553-4d09-bb04-c333c5fad2e2",
+            "data": {
+              "type": "tm.Process",
+              "name": "Lateral movement",
+              "description": "OR: pivot from a compromised internal service to the DB.",
+              "outOfScope": false,
+              "reasonOutOfScope": "",
+              "threats": [],
+              "hasOpenThreats": false,
+              "privilegeLevel": ""
+            }
+          },
+          {
+            "position": {
+              "x": 720,
+              "y": 400
+            },
+            "size": {
+              "width": 170,
+              "height": 100
+            },
+            "attrs": {
+              "text": {
+                "text": "AWS cloud publicly exposed"
+              },
+              "body": {
+                "stroke": "#333333",
+                "strokeWidth": 1.5,
+                "strokeDasharray": ""
+              }
+            },
+            "visible": true,
+            "shape": "process",
+            "zIndex": 2,
+            "id": "db175da2-289b-4cd4-968a-d452faa315e8",
+            "data": {
+              "type": "tm.Process",
+              "name": "AWS cloud publicly exposed",
+              "description": "Public S3 bucket / RDS snapshot / open security group to the DB.",
+              "outOfScope": false,
+              "reasonOutOfScope": "",
+              "threats": [],
+              "hasOpenThreats": false,
+              "privilegeLevel": ""
+            }
+          },
+          {
+            "position": {
+              "x": 940,
+              "y": 400
+            },
+            "size": {
+              "width": 170,
+              "height": 100
+            },
+            "attrs": {
+              "text": {
+                "text": "Exploit Log4j (Log4Shell)"
+              },
+              "body": {
+                "stroke": "#333333",
+                "strokeWidth": 1.5,
+                "strokeDasharray": ""
+              }
+            },
+            "visible": true,
+            "shape": "process",
+            "zIndex": 2,
+            "id": "3bb59d51-8da0-4c81-b730-3d1f254145a3",
+            "data": {
+              "type": "tm.Process",
+              "name": "Exploit Log4j (Log4Shell)",
+              "description": "CVE-2021-44228 RCE on the Java payment server; then scrape PANs or pivot to the DB.",
+              "outOfScope": false,
+              "reasonOutOfScope": "",
+              "threats": [],
+              "hasOpenThreats": false,
+              "privilegeLevel": ""
+            }
+          },
+          {
+            "position": {
+              "x": 1140,
+              "y": 400
+            },
+            "size": {
+              "width": 170,
+              "height": 100
+            },
+            "attrs": {
+              "text": {
+                "text": "Phish customers"
+              },
+              "body": {
+                "stroke": "#333333",
+                "strokeWidth": 1.5,
+                "strokeDasharray": ""
+              }
+            },
+            "visible": true,
+            "shape": "process",
+            "zIndex": 2,
+            "id": "30a29967-557d-4b4d-a33c-38854e20f04c",
+            "data": {
+              "type": "tm.Process",
+              "name": "Phish customers",
+              "description": "Lookalike site / SMS / email captures card details or app logins.",
+              "outOfScope": false,
+              "reasonOutOfScope": "",
+              "threats": [],
+              "hasOpenThreats": false,
+              "privilegeLevel": ""
+            }
+          },
+          {
+            "position": {
+              "x": 1330,
+              "y": 400
+            },
+            "size": {
+              "width": 170,
+              "height": 100
+            },
+            "attrs": {
+              "text": {
+                "text": "XSS / skimming script in app"
+              },
+              "body": {
+                "stroke": "#333333",
+                "strokeWidth": 1.5,
+                "strokeDasharray": ""
+              }
+            },
+            "visible": true,
+            "shape": "process",
+            "zIndex": 2,
+            "id": "f6384959-b62c-4167-8be0-197b4488c2a3",
+            "data": {
+              "type": "tm.Process",
+              "name": "XSS / skimming script in app",
+              "description": "Injected JS on checkout captures cards as typed (Magecart-style).",
+              "outOfScope": false,
+              "reasonOutOfScope": "",
+              "threats": [],
+              "hasOpenThreats": false,
+              "privilegeLevel": ""
+            }
+          },
+          {
+            "position": {
+              "x": 1520,
+              "y": 400
+            },
+            "size": {
+              "width": 170,
+              "height": 100
+            },
+            "attrs": {
+              "text": {
+                "text": "Abuse API gateway (BOLA, credential stuffing)"
+              },
+              "body": {
+                "stroke": "#333333",
+                "strokeWidth": 1.5,
+                "strokeDasharray": ""
+              }
+            },
+            "visible": true,
+            "shape": "process",
+            "zIndex": 2,
+            "id": "58a1738e-8fbe-4ca4-a987-6d1f3fd6400f",
+            "data": {
+              "type": "tm.Process",
+              "name": "Abuse API gateway (BOLA, credential stuffing)",
+              "description": "Read other customers' data through broken object-level authorisation.",
+              "outOfScope": false,
+              "reasonOutOfScope": "",
+              "threats": [],
+              "hasOpenThreats": false,
+              "privilegeLevel": ""
+            }
+          },
+          {
+            "position": {
+              "x": 20,
+              "y": 600
+            },
+            "size": {
+              "width": 140,
+              "height": 90
+            },
+            "attrs": {
+              "text": {
+                "text": "Phishing admins"
+              },
+              "body": {
+                "stroke": "#333333",
+                "strokeWidth": 1.5,
+                "strokeDasharray": ""
+              }
+            },
+            "visible": true,
+            "shape": "process",
+            "zIndex": 2,
+            "id": "b56ac4b5-37a7-4bde-9e1f-a2282d559109",
+            "data": {
+              "type": "tm.Process",
+              "name": "Phishing admins",
+              "description": "Targeted phishing / AiTM kit against admins.",
+              "outOfScope": false,
+              "reasonOutOfScope": "",
+              "threats": [],
+              "hasOpenThreats": false,
+              "privilegeLevel": ""
+            }
+          },
+          {
+            "position": {
+              "x": 170,
+              "y": 600
+            },
+            "size": {
+              "width": 140,
+              "height": 90
+            },
+            "attrs": {
+              "text": {
+                "text": "Weak MFA implementation"
+              },
+              "body": {
+                "stroke": "#333333",
+                "strokeWidth": 1.5,
+                "strokeDasharray": ""
+              }
+            },
+            "visible": true,
+            "shape": "process",
+            "zIndex": 2,
+            "id": "e0e9dc3f-be6a-440c-afe3-d0f00d47322f",
+            "data": {
+              "type": "tm.Process",
+              "name": "Weak MFA implementation",
+              "description": "SMS/OTP/push MFA - phishable, fatigue-prone.",
+              "outOfScope": false,
+              "reasonOutOfScope": "",
+              "threats": [],
+              "hasOpenThreats": false,
+              "privilegeLevel": ""
+            }
+          },
+          {
+            "position": {
+              "x": 320,
+              "y": 600
+            },
+            "size": {
+              "width": 140,
+              "height": 90
+            },
+            "attrs": {
+              "text": {
+                "text": "MITM (session hijack)"
+              },
+              "body": {
+                "stroke": "#333333",
+                "strokeWidth": 1.5,
+                "strokeDasharray": ""
+              }
+            },
+            "visible": true,
+            "shape": "process",
+            "zIndex": 2,
+            "id": "e89d7787-2133-4fb7-b951-7a01bd945b82",
+            "data": {
+              "type": "tm.Process",
+              "name": "MITM (session hijack)",
+              "description": "Adversary-in-the-middle steals the session cookie after MFA.",
+              "outOfScope": false,
+              "reasonOutOfScope": "",
+              "threats": [],
+              "hasOpenThreats": false,
+              "privilegeLevel": ""
+            }
+          },
+          {
+            "position": {
+              "x": 380,
+              "y": 760
+            },
+            "size": {
+              "width": 150,
+              "height": 90
+            },
+            "attrs": {
+              "text": {
+                "text": "Compromise Jenkins server"
+              },
+              "body": {
+                "stroke": "#333333",
+                "strokeWidth": 1.5,
+                "strokeDasharray": ""
+              }
+            },
+            "visible": true,
+            "shape": "process",
+            "zIndex": 2,
+            "id": "2fc2a8bf-46f1-4ddf-928e-303a5e27e09c",
+            "data": {
+              "type": "tm.Process",
+              "name": "Compromise Jenkins server",
+              "description": "Exposed CI/CD, stored secrets, deploy rights.",
+              "outOfScope": false,
+              "reasonOutOfScope": "",
+              "threats": [],
+              "hasOpenThreats": false,
+              "privilegeLevel": ""
+            }
+          },
+          {
+            "position": {
+              "x": 550,
+              "y": 600
+            },
+            "size": {
+              "width": 150,
+              "height": 90
+            },
+            "attrs": {
+              "text": {
+                "text": "Compromise a microservice"
+              },
+              "body": {
+                "stroke": "#333333",
+                "strokeWidth": 1.5,
+                "strokeDasharray": ""
+              }
+            },
+            "visible": true,
+            "shape": "process",
+            "zIndex": 2,
+            "id": "25af21a7-4150-435d-b541-3023b8621060",
+            "data": {
+              "type": "tm.Process",
+              "name": "Compromise a microservice",
+              "description": "Flat network + no service-to-service auth.",
+              "outOfScope": false,
+              "reasonOutOfScope": "",
+              "threats": [],
+              "hasOpenThreats": false,
+              "privilegeLevel": ""
+            }
+          },
+          {
+            "position": {
+              "x": 710,
+              "y": 600
+            },
+            "size": {
+              "width": 150,
+              "height": 90
+            },
+            "attrs": {
+              "text": {
+                "text": "Staging / API server exposed"
+              },
+              "body": {
+                "stroke": "#333333",
+                "strokeWidth": 1.5,
+                "strokeDasharray": ""
+              }
+            },
+            "visible": true,
+            "shape": "process",
+            "zIndex": 2,
+            "id": "f79e243b-dfeb-4696-bd00-7d18607a70ee",
+            "data": {
+              "type": "tm.Process",
+              "name": "Staging / API server exposed",
+              "description": "Internet-facing staging with prod data or shared creds.",
+              "outOfScope": false,
+              "reasonOutOfScope": "",
+              "threats": [],
+              "hasOpenThreats": false,
+              "privilegeLevel": ""
+            }
+          },
+          {
+            "position": {
+              "x": 870,
+              "y": 600
+            },
+            "size": {
+              "width": 150,
+              "height": 90
+            },
+            "attrs": {
+              "text": {
+                "text": "Security misconfiguration"
+              },
+              "body": {
+                "stroke": "#333333",
+                "strokeWidth": 1.5,
+                "strokeDasharray": ""
+              }
+            },
+            "visible": true,
+            "shape": "process",
+            "zIndex": 2,
+            "id": "15d41e6b-d374-4101-95ea-b8432140d538",
+            "data": {
+              "type": "tm.Process",
+              "name": "Security misconfiguration",
+              "description": "Public bucket, open SG, public snapshot.",
+              "outOfScope": false,
+              "reasonOutOfScope": "",
+              "threats": [],
+              "hasOpenThreats": false,
+              "privilegeLevel": ""
+            }
+          },
+          {
+            "shape": "flow",
+            "zIndex": 10,
+            "id": "bd624784-c218-465e-b9bc-6c3a42852597",
+            "attrs": {
+              "line": {
+                "stroke": "#333333",
+                "strokeWidth": 1.5,
+                "targetMarker": {
+                  "name": "block"
+                },
+                "sourceMarker": {
+                  "name": ""
+                },
+                "strokeDasharray": ""
+              }
+            },
+            "labels": [
+              {
+                "markup": [
+                  {
+                    "tagName": "ellipse",
+                    "selector": "labelBody"
+                  },
+                  {
+                    "tagName": "text",
+                    "selector": "labelText"
+                  }
+                ],
+                "attrs": {
+                  "labelText": {
+                    "text": "OR",
+                    "textAnchor": "middle",
+                    "textVerticalAnchor": "middle"
+                  },
+                  "labelBody": {
+                    "ref": "labelText",
+                    "refRx": "50%",
+                    "refRy": "60%",
+                    "fill": "#fff",
+                    "strokeWidth": 0
+                  }
+                },
+                "position": {
+                  "distance": 0.5,
+                  "args": {
+                    "keepGradient": true,
+                    "ensureLegibility": true
+                  }
+                }
+              }
+            ],
+            "source": {
+              "cell": "4b472641-7174-4cdf-89b2-b3fac066bc5c"
+            },
+            "target": {
+              "cell": "c907e623-4753-4c87-9a6c-ca0819807cc8"
+            },
+            "vertices": [],
+            "data": {
+              "type": "tm.Flow",
+              "name": "OR",
+              "description": "OR branch of the attack tree",
+              "outOfScope": false,
+              "reasonOutOfScope": "",
+              "protocol": "",
+              "isEncrypted": false,
+              "isPublicNetwork": false,
+              "isBidirectional": false,
+              "threats": [],
+              "hasOpenThreats": false
+            }
+          },
+          {
+            "shape": "flow",
+            "zIndex": 10,
+            "id": "b2c08c3d-f1ee-48ac-a300-0a0116e7410e",
+            "attrs": {
+              "line": {
+                "stroke": "#333333",
+                "strokeWidth": 1.5,
+                "targetMarker": {
+                  "name": "block"
+                },
+                "sourceMarker": {
+                  "name": ""
+                },
+                "strokeDasharray": ""
+              }
+            },
+            "labels": [
+              {
+                "markup": [
+                  {
+                    "tagName": "ellipse",
+                    "selector": "labelBody"
+                  },
+                  {
+                    "tagName": "text",
+                    "selector": "labelText"
+                  }
+                ],
+                "attrs": {
+                  "labelText": {
+                    "text": "OR",
+                    "textAnchor": "middle",
+                    "textVerticalAnchor": "middle"
+                  },
+                  "labelBody": {
+                    "ref": "labelText",
+                    "refRx": "50%",
+                    "refRy": "60%",
+                    "fill": "#fff",
+                    "strokeWidth": 0
+                  }
+                },
+                "position": {
+                  "distance": 0.5,
+                  "args": {
+                    "keepGradient": true,
+                    "ensureLegibility": true
+                  }
+                }
+              }
+            ],
+            "source": {
+              "cell": "a00fd979-dc8d-4c12-9307-2bcae11c3bdb"
+            },
+            "target": {
+              "cell": "c907e623-4753-4c87-9a6c-ca0819807cc8"
+            },
+            "vertices": [],
+            "data": {
+              "type": "tm.Flow",
+              "name": "OR",
+              "description": "OR branch of the attack tree",
+              "outOfScope": false,
+              "reasonOutOfScope": "",
+              "protocol": "",
+              "isEncrypted": false,
+              "isPublicNetwork": false,
+              "isBidirectional": false,
+              "threats": [],
+              "hasOpenThreats": false
+            }
+          },
+          {
+            "shape": "flow",
+            "zIndex": 10,
+            "id": "bd85278a-5761-4707-a7b1-ceac33348dc4",
+            "attrs": {
+              "line": {
+                "stroke": "#333333",
+                "strokeWidth": 1.5,
+                "targetMarker": {
+                  "name": "block"
+                },
+                "sourceMarker": {
+                  "name": ""
+                },
+                "strokeDasharray": ""
+              }
+            },
+            "labels": [
+              {
+                "markup": [
+                  {
+                    "tagName": "ellipse",
+                    "selector": "labelBody"
+                  },
+                  {
+                    "tagName": "text",
+                    "selector": "labelText"
+                  }
+                ],
+                "attrs": {
+                  "labelText": {
+                    "text": "OR",
+                    "textAnchor": "middle",
+                    "textVerticalAnchor": "middle"
+                  },
+                  "labelBody": {
+                    "ref": "labelText",
+                    "refRx": "50%",
+                    "refRy": "60%",
+                    "fill": "#fff",
+                    "strokeWidth": 0
+                  }
+                },
+                "position": {
+                  "distance": 0.5,
+                  "args": {
+                    "keepGradient": true,
+                    "ensureLegibility": true
+                  }
+                }
+              }
+            ],
+            "source": {
+              "cell": "ca6b5ecd-a178-4d59-9348-5272e4b3e6a7"
+            },
+            "target": {
+              "cell": "c907e623-4753-4c87-9a6c-ca0819807cc8"
+            },
+            "vertices": [],
+            "data": {
+              "type": "tm.Flow",
+              "name": "OR",
+              "description": "OR branch of the attack tree",
+              "outOfScope": false,
+              "reasonOutOfScope": "",
+              "protocol": "",
+              "isEncrypted": false,
+              "isPublicNetwork": false,
+              "isBidirectional": false,
+              "threats": [],
+              "hasOpenThreats": false
+            }
+          },
+          {
+            "shape": "flow",
+            "zIndex": 10,
+            "id": "c596c307-1a93-4926-8780-c235a48445b6",
+            "attrs": {
+              "line": {
+                "stroke": "#333333",
+                "strokeWidth": 1.5,
+                "targetMarker": {
+                  "name": "block"
+                },
+                "sourceMarker": {
+                  "name": ""
+                },
+                "strokeDasharray": ""
+              }
+            },
+            "labels": [
+              {
+                "markup": [
+                  {
+                    "tagName": "ellipse",
+                    "selector": "labelBody"
+                  },
+                  {
+                    "tagName": "text",
+                    "selector": "labelText"
+                  }
+                ],
+                "attrs": {
+                  "labelText": {
+                    "text": "OR",
+                    "textAnchor": "middle",
+                    "textVerticalAnchor": "middle"
+                  },
+                  "labelBody": {
+                    "ref": "labelText",
+                    "refRx": "50%",
+                    "refRy": "60%",
+                    "fill": "#fff",
+                    "strokeWidth": 0
+                  }
+                },
+                "position": {
+                  "distance": 0.5,
+                  "args": {
+                    "keepGradient": true,
+                    "ensureLegibility": true
+                  }
+                }
+              }
+            ],
+            "source": {
+              "cell": "dffa20ed-754c-4f60-bb5b-1c4cef2eaf42"
+            },
+            "target": {
+              "cell": "4b472641-7174-4cdf-89b2-b3fac066bc5c"
+            },
+            "vertices": [],
+            "data": {
+              "type": "tm.Flow",
+              "name": "OR",
+              "description": "OR branch of the attack tree",
+              "outOfScope": false,
+              "reasonOutOfScope": "",
+              "protocol": "",
+              "isEncrypted": false,
+              "isPublicNetwork": false,
+              "isBidirectional": false,
+              "threats": [],
+              "hasOpenThreats": false
+            }
+          },
+          {
+            "shape": "flow",
+            "zIndex": 10,
+            "id": "3f8991fd-b1f8-41c5-b714-1635dd68ed82",
+            "attrs": {
+              "line": {
+                "stroke": "#333333",
+                "strokeWidth": 1.5,
+                "targetMarker": {
+                  "name": "block"
+                },
+                "sourceMarker": {
+                  "name": ""
+                },
+                "strokeDasharray": ""
+              }
+            },
+            "labels": [
+              {
+                "markup": [
+                  {
+                    "tagName": "ellipse",
+                    "selector": "labelBody"
+                  },
+                  {
+                    "tagName": "text",
+                    "selector": "labelText"
+                  }
+                ],
+                "attrs": {
+                  "labelText": {
+                    "text": "OR",
+                    "textAnchor": "middle",
+                    "textVerticalAnchor": "middle"
+                  },
+                  "labelBody": {
+                    "ref": "labelText",
+                    "refRx": "50%",
+                    "refRy": "60%",
+                    "fill": "#fff",
+                    "strokeWidth": 0
+                  }
+                },
+                "position": {
+                  "distance": 0.5,
+                  "args": {
+                    "keepGradient": true,
+                    "ensureLegibility": true
+                  }
+                }
+              }
+            ],
+            "source": {
+              "cell": "4791ecd8-022c-4b3d-bd59-1a651f2fc654"
+            },
+            "target": {
+              "cell": "4b472641-7174-4cdf-89b2-b3fac066bc5c"
+            },
+            "vertices": [],
+            "data": {
+              "type": "tm.Flow",
+              "name": "OR",
+              "description": "OR branch of the attack tree",
+              "outOfScope": false,
+              "reasonOutOfScope": "",
+              "protocol": "",
+              "isEncrypted": false,
+              "isPublicNetwork": false,
+              "isBidirectional": false,
+              "threats": [],
+              "hasOpenThreats": false
+            }
+          },
+          {
+            "shape": "flow",
+            "zIndex": 10,
+            "id": "1d50b120-4799-4c68-af40-54dd4e0e0f4b",
+            "attrs": {
+              "line": {
+                "stroke": "#333333",
+                "strokeWidth": 1.5,
+                "targetMarker": {
+                  "name": "block"
+                },
+                "sourceMarker": {
+                  "name": ""
+                },
+                "strokeDasharray": ""
+              }
+            },
+            "labels": [
+              {
+                "markup": [
+                  {
+                    "tagName": "ellipse",
+                    "selector": "labelBody"
+                  },
+                  {
+                    "tagName": "text",
+                    "selector": "labelText"
+                  }
+                ],
+                "attrs": {
+                  "labelText": {
+                    "text": "OR",
+                    "textAnchor": "middle",
+                    "textVerticalAnchor": "middle"
+                  },
+                  "labelBody": {
+                    "ref": "labelText",
+                    "refRx": "50%",
+                    "refRy": "60%",
+                    "fill": "#fff",
+                    "strokeWidth": 0
+                  }
+                },
+                "position": {
+                  "distance": 0.5,
+                  "args": {
+                    "keepGradient": true,
+                    "ensureLegibility": true
+                  }
+                }
+              }
+            ],
+            "source": {
+              "cell": "353eb8a5-c553-4d09-bb04-c333c5fad2e2"
+            },
+            "target": {
+              "cell": "4b472641-7174-4cdf-89b2-b3fac066bc5c"
+            },
+            "vertices": [],
+            "data": {
+              "type": "tm.Flow",
+              "name": "OR",
+              "description": "OR branch of the attack tree",
+              "outOfScope": false,
+              "reasonOutOfScope": "",
+              "protocol": "",
+              "isEncrypted": false,
+              "isPublicNetwork": false,
+              "isBidirectional": false,
+              "threats": [],
+              "hasOpenThreats": false
+            }
+          },
+          {
+            "shape": "flow",
+            "zIndex": 10,
+            "id": "d2b94740-b807-4ca8-a970-86ae824b37d0",
+            "attrs": {
+              "line": {
+                "stroke": "#333333",
+                "strokeWidth": 1.5,
+                "targetMarker": {
+                  "name": "block"
+                },
+                "sourceMarker": {
+                  "name": ""
+                },
+                "strokeDasharray": ""
+              }
+            },
+            "labels": [
+              {
+                "markup": [
+                  {
+                    "tagName": "ellipse",
+                    "selector": "labelBody"
+                  },
+                  {
+                    "tagName": "text",
+                    "selector": "labelText"
+                  }
+                ],
+                "attrs": {
+                  "labelText": {
+                    "text": "OR",
+                    "textAnchor": "middle",
+                    "textVerticalAnchor": "middle"
+                  },
+                  "labelBody": {
+                    "ref": "labelText",
+                    "refRx": "50%",
+                    "refRy": "60%",
+                    "fill": "#fff",
+                    "strokeWidth": 0
+                  }
+                },
+                "position": {
+                  "distance": 0.5,
+                  "args": {
+                    "keepGradient": true,
+                    "ensureLegibility": true
+                  }
+                }
+              }
+            ],
+            "source": {
+              "cell": "db175da2-289b-4cd4-968a-d452faa315e8"
+            },
+            "target": {
+              "cell": "4b472641-7174-4cdf-89b2-b3fac066bc5c"
+            },
+            "vertices": [],
+            "data": {
+              "type": "tm.Flow",
+              "name": "OR",
+              "description": "OR branch of the attack tree",
+              "outOfScope": false,
+              "reasonOutOfScope": "",
+              "protocol": "",
+              "isEncrypted": false,
+              "isPublicNetwork": false,
+              "isBidirectional": false,
+              "threats": [],
+              "hasOpenThreats": false
+            }
+          },
+          {
+            "shape": "flow",
+            "zIndex": 10,
+            "id": "8ef7a6d5-5f64-4fa7-9d97-d18392143779",
+            "attrs": {
+              "line": {
+                "stroke": "#333333",
+                "strokeWidth": 1.5,
+                "targetMarker": {
+                  "name": "block"
+                },
+                "sourceMarker": {
+                  "name": ""
+                },
+                "strokeDasharray": ""
+              }
+            },
+            "labels": [
+              {
+                "markup": [
+                  {
+                    "tagName": "ellipse",
+                    "selector": "labelBody"
+                  },
+                  {
+                    "tagName": "text",
+                    "selector": "labelText"
+                  }
+                ],
+                "attrs": {
+                  "labelText": {
+                    "text": "OR",
+                    "textAnchor": "middle",
+                    "textVerticalAnchor": "middle"
+                  },
+                  "labelBody": {
+                    "ref": "labelText",
+                    "refRx": "50%",
+                    "refRy": "60%",
+                    "fill": "#fff",
+                    "strokeWidth": 0
+                  }
+                },
+                "position": {
+                  "distance": 0.5,
+                  "args": {
+                    "keepGradient": true,
+                    "ensureLegibility": true
+                  }
+                }
+              }
+            ],
+            "source": {
+              "cell": "3bb59d51-8da0-4c81-b730-3d1f254145a3"
+            },
+            "target": {
+              "cell": "a00fd979-dc8d-4c12-9307-2bcae11c3bdb"
+            },
+            "vertices": [],
+            "data": {
+              "type": "tm.Flow",
+              "name": "OR",
+              "description": "OR branch of the attack tree",
+              "outOfScope": false,
+              "reasonOutOfScope": "",
+              "protocol": "",
+              "isEncrypted": false,
+              "isPublicNetwork": false,
+              "isBidirectional": false,
+              "threats": [],
+              "hasOpenThreats": false
+            }
+          },
+          {
+            "shape": "flow",
+            "zIndex": 10,
+            "id": "b1d9ab8f-63d6-4885-bfbf-740b0469f880",
+            "attrs": {
+              "line": {
+                "stroke": "#333333",
+                "strokeWidth": 1.5,
+                "targetMarker": {
+                  "name": "block"
+                },
+                "sourceMarker": {
+                  "name": ""
+                },
+                "strokeDasharray": ""
+              }
+            },
+            "labels": [
+              {
+                "markup": [
+                  {
+                    "tagName": "ellipse",
+                    "selector": "labelBody"
+                  },
+                  {
+                    "tagName": "text",
+                    "selector": "labelText"
+                  }
+                ],
+                "attrs": {
+                  "labelText": {
+                    "text": "OR",
+                    "textAnchor": "middle",
+                    "textVerticalAnchor": "middle"
+                  },
+                  "labelBody": {
+                    "ref": "labelText",
+                    "refRx": "50%",
+                    "refRy": "60%",
+                    "fill": "#fff",
+                    "strokeWidth": 0
+                  }
+                },
+                "position": {
+                  "distance": 0.5,
+                  "args": {
+                    "keepGradient": true,
+                    "ensureLegibility": true
+                  }
+                }
+              }
+            ],
+            "source": {
+              "cell": "30a29967-557d-4b4d-a33c-38854e20f04c"
+            },
+            "target": {
+              "cell": "ca6b5ecd-a178-4d59-9348-5272e4b3e6a7"
+            },
+            "vertices": [],
+            "data": {
+              "type": "tm.Flow",
+              "name": "OR",
+              "description": "OR branch of the attack tree",
+              "outOfScope": false,
+              "reasonOutOfScope": "",
+              "protocol": "",
+              "isEncrypted": false,
+              "isPublicNetwork": false,
+              "isBidirectional": false,
+              "threats": [],
+              "hasOpenThreats": false
+            }
+          },
+          {
+            "shape": "flow",
+            "zIndex": 10,
+            "id": "8c47e9b0-8563-43ec-b86f-9b5888d55cfa",
+            "attrs": {
+              "line": {
+                "stroke": "#333333",
+                "strokeWidth": 1.5,
+                "targetMarker": {
+                  "name": "block"
+                },
+                "sourceMarker": {
+                  "name": ""
+                },
+                "strokeDasharray": ""
+              }
+            },
+            "labels": [
+              {
+                "markup": [
+                  {
+                    "tagName": "ellipse",
+                    "selector": "labelBody"
+                  },
+                  {
+                    "tagName": "text",
+                    "selector": "labelText"
+                  }
+                ],
+                "attrs": {
+                  "labelText": {
+                    "text": "OR",
+                    "textAnchor": "middle",
+                    "textVerticalAnchor": "middle"
+                  },
+                  "labelBody": {
+                    "ref": "labelText",
+                    "refRx": "50%",
+                    "refRy": "60%",
+                    "fill": "#fff",
+                    "strokeWidth": 0
+                  }
+                },
+                "position": {
+                  "distance": 0.5,
+                  "args": {
+                    "keepGradient": true,
+                    "ensureLegibility": true
+                  }
+                }
+              }
+            ],
+            "source": {
+              "cell": "f6384959-b62c-4167-8be0-197b4488c2a3"
+            },
+            "target": {
+              "cell": "ca6b5ecd-a178-4d59-9348-5272e4b3e6a7"
+            },
+            "vertices": [],
+            "data": {
+              "type": "tm.Flow",
+              "name": "OR",
+              "description": "OR branch of the attack tree",
+              "outOfScope": false,
+              "reasonOutOfScope": "",
+              "protocol": "",
+              "isEncrypted": false,
+              "isPublicNetwork": false,
+              "isBidirectional": false,
+              "threats": [],
+              "hasOpenThreats": false
+            }
+          },
+          {
+            "shape": "flow",
+            "zIndex": 10,
+            "id": "fd224695-ce78-46d4-9915-4ae4fbb3f95f",
+            "attrs": {
+              "line": {
+                "stroke": "#333333",
+                "strokeWidth": 1.5,
+                "targetMarker": {
+                  "name": "block"
+                },
+                "sourceMarker": {
+                  "name": ""
+                },
+                "strokeDasharray": ""
+              }
+            },
+            "labels": [
+              {
+                "markup": [
+                  {
+                    "tagName": "ellipse",
+                    "selector": "labelBody"
+                  },
+                  {
+                    "tagName": "text",
+                    "selector": "labelText"
+                  }
+                ],
+                "attrs": {
+                  "labelText": {
+                    "text": "OR",
+                    "textAnchor": "middle",
+                    "textVerticalAnchor": "middle"
+                  },
+                  "labelBody": {
+                    "ref": "labelText",
+                    "refRx": "50%",
+                    "refRy": "60%",
+                    "fill": "#fff",
+                    "strokeWidth": 0
+                  }
+                },
+                "position": {
+                  "distance": 0.5,
+                  "args": {
+                    "keepGradient": true,
+                    "ensureLegibility": true
+                  }
+                }
+              }
+            ],
+            "source": {
+              "cell": "58a1738e-8fbe-4ca4-a987-6d1f3fd6400f"
+            },
+            "target": {
+              "cell": "ca6b5ecd-a178-4d59-9348-5272e4b3e6a7"
+            },
+            "vertices": [],
+            "data": {
+              "type": "tm.Flow",
+              "name": "OR",
+              "description": "OR branch of the attack tree",
+              "outOfScope": false,
+              "reasonOutOfScope": "",
+              "protocol": "",
+              "isEncrypted": false,
+              "isPublicNetwork": false,
+              "isBidirectional": false,
+              "threats": [],
+              "hasOpenThreats": false
+            }
+          },
+          {
+            "shape": "flow",
+            "zIndex": 10,
+            "id": "4ecc8558-c88b-4ac4-92ee-e0dea9dbcad5",
+            "attrs": {
+              "line": {
+                "stroke": "#333333",
+                "strokeWidth": 1.5,
+                "targetMarker": {
+                  "name": "block"
+                },
+                "sourceMarker": {
+                  "name": ""
+                },
+                "strokeDasharray": ""
+              }
+            },
+            "labels": [
+              {
+                "markup": [
+                  {
+                    "tagName": "ellipse",
+                    "selector": "labelBody"
+                  },
+                  {
+                    "tagName": "text",
+                    "selector": "labelText"
+                  }
+                ],
+                "attrs": {
+                  "labelText": {
+                    "text": "AND",
+                    "textAnchor": "middle",
+                    "textVerticalAnchor": "middle"
+                  },
+                  "labelBody": {
+                    "ref": "labelText",
+                    "refRx": "50%",
+                    "refRy": "60%",
+                    "fill": "#fff",
+                    "strokeWidth": 0
+                  }
+                },
+                "position": {
+                  "distance": 0.5,
+                  "args": {
+                    "keepGradient": true,
+                    "ensureLegibility": true
+                  }
+                }
+              }
+            ],
+            "source": {
+              "cell": "b56ac4b5-37a7-4bde-9e1f-a2282d559109"
+            },
+            "target": {
+              "cell": "dffa20ed-754c-4f60-bb5b-1c4cef2eaf42"
+            },
+            "vertices": [],
+            "data": {
+              "type": "tm.Flow",
+              "name": "AND",
+              "description": "AND branch of the attack tree",
+              "outOfScope": false,
+              "reasonOutOfScope": "",
+              "protocol": "",
+              "isEncrypted": false,
+              "isPublicNetwork": false,
+              "isBidirectional": false,
+              "threats": [],
+              "hasOpenThreats": false
+            }
+          },
+          {
+            "shape": "flow",
+            "zIndex": 10,
+            "id": "004a83c6-e1d4-44f1-a8ec-2b2d2a1d91ea",
+            "attrs": {
+              "line": {
+                "stroke": "#333333",
+                "strokeWidth": 1.5,
+                "targetMarker": {
+                  "name": "block"
+                },
+                "sourceMarker": {
+                  "name": ""
+                },
+                "strokeDasharray": ""
+              }
+            },
+            "labels": [
+              {
+                "markup": [
+                  {
+                    "tagName": "ellipse",
+                    "selector": "labelBody"
+                  },
+                  {
+                    "tagName": "text",
+                    "selector": "labelText"
+                  }
+                ],
+                "attrs": {
+                  "labelText": {
+                    "text": "AND",
+                    "textAnchor": "middle",
+                    "textVerticalAnchor": "middle"
+                  },
+                  "labelBody": {
+                    "ref": "labelText",
+                    "refRx": "50%",
+                    "refRy": "60%",
+                    "fill": "#fff",
+                    "strokeWidth": 0
+                  }
+                },
+                "position": {
+                  "distance": 0.5,
+                  "args": {
+                    "keepGradient": true,
+                    "ensureLegibility": true
+                  }
+                }
+              }
+            ],
+            "source": {
+              "cell": "e0e9dc3f-be6a-440c-afe3-d0f00d47322f"
+            },
+            "target": {
+              "cell": "dffa20ed-754c-4f60-bb5b-1c4cef2eaf42"
+            },
+            "vertices": [],
+            "data": {
+              "type": "tm.Flow",
+              "name": "AND",
+              "description": "AND branch of the attack tree",
+              "outOfScope": false,
+              "reasonOutOfScope": "",
+              "protocol": "",
+              "isEncrypted": false,
+              "isPublicNetwork": false,
+              "isBidirectional": false,
+              "threats": [],
+              "hasOpenThreats": false
+            }
+          },
+          {
+            "shape": "flow",
+            "zIndex": 10,
+            "id": "becb069f-6dcd-45bc-8b97-e7d9d73e3a39",
+            "attrs": {
+              "line": {
+                "stroke": "#333333",
+                "strokeWidth": 1.5,
+                "targetMarker": {
+                  "name": "block"
+                },
+                "sourceMarker": {
+                  "name": ""
+                },
+                "strokeDasharray": ""
+              }
+            },
+            "labels": [
+              {
+                "markup": [
+                  {
+                    "tagName": "ellipse",
+                    "selector": "labelBody"
+                  },
+                  {
+                    "tagName": "text",
+                    "selector": "labelText"
+                  }
+                ],
+                "attrs": {
+                  "labelText": {
+                    "text": "AND",
+                    "textAnchor": "middle",
+                    "textVerticalAnchor": "middle"
+                  },
+                  "labelBody": {
+                    "ref": "labelText",
+                    "refRx": "50%",
+                    "refRy": "60%",
+                    "fill": "#fff",
+                    "strokeWidth": 0
+                  }
+                },
+                "position": {
+                  "distance": 0.5,
+                  "args": {
+                    "keepGradient": true,
+                    "ensureLegibility": true
+                  }
+                }
+              }
+            ],
+            "source": {
+              "cell": "e89d7787-2133-4fb7-b951-7a01bd945b82"
+            },
+            "target": {
+              "cell": "dffa20ed-754c-4f60-bb5b-1c4cef2eaf42"
+            },
+            "vertices": [],
+            "data": {
+              "type": "tm.Flow",
+              "name": "AND",
+              "description": "AND branch of the attack tree",
+              "outOfScope": false,
+              "reasonOutOfScope": "",
+              "protocol": "",
+              "isEncrypted": false,
+              "isPublicNetwork": false,
+              "isBidirectional": false,
+              "threats": [],
+              "hasOpenThreats": false
+            }
+          },
+          {
+            "shape": "flow",
+            "zIndex": 10,
+            "id": "4884921e-922d-4311-95ed-48c2d5234962",
+            "attrs": {
+              "line": {
+                "stroke": "#333333",
+                "strokeWidth": 1.5,
+                "targetMarker": {
+                  "name": "block"
+                },
+                "sourceMarker": {
+                  "name": ""
+                },
+                "strokeDasharray": ""
+              }
+            },
+            "labels": [
+              {
+                "markup": [
+                  {
+                    "tagName": "ellipse",
+                    "selector": "labelBody"
+                  },
+                  {
+                    "tagName": "text",
+                    "selector": "labelText"
+                  }
+                ],
+                "attrs": {
+                  "labelText": {
+                    "text": "OR",
+                    "textAnchor": "middle",
+                    "textVerticalAnchor": "middle"
+                  },
+                  "labelBody": {
+                    "ref": "labelText",
+                    "refRx": "50%",
+                    "refRy": "60%",
+                    "fill": "#fff",
+                    "strokeWidth": 0
+                  }
+                },
+                "position": {
+                  "distance": 0.5,
+                  "args": {
+                    "keepGradient": true,
+                    "ensureLegibility": true
+                  }
+                }
+              }
+            ],
+            "source": {
+              "cell": "2fc2a8bf-46f1-4ddf-928e-303a5e27e09c"
+            },
+            "target": {
+              "cell": "4791ecd8-022c-4b3d-bd59-1a651f2fc654"
+            },
+            "vertices": [],
+            "data": {
+              "type": "tm.Flow",
+              "name": "OR",
+              "description": "OR branch of the attack tree",
+              "outOfScope": false,
+              "reasonOutOfScope": "",
+              "protocol": "",
+              "isEncrypted": false,
+              "isPublicNetwork": false,
+              "isBidirectional": false,
+              "threats": [],
+              "hasOpenThreats": false
+            }
+          },
+          {
+            "shape": "flow",
+            "zIndex": 10,
+            "id": "aead8484-cca1-4287-8306-96e821325d08",
+            "attrs": {
+              "line": {
+                "stroke": "#333333",
+                "strokeWidth": 1.5,
+                "targetMarker": {
+                  "name": "block"
+                },
+                "sourceMarker": {
+                  "name": ""
+                },
+                "strokeDasharray": ""
+              }
+            },
+            "labels": [
+              {
+                "markup": [
+                  {
+                    "tagName": "ellipse",
+                    "selector": "labelBody"
+                  },
+                  {
+                    "tagName": "text",
+                    "selector": "labelText"
+                  }
+                ],
+                "attrs": {
+                  "labelText": {
+                    "text": "OR",
+                    "textAnchor": "middle",
+                    "textVerticalAnchor": "middle"
+                  },
+                  "labelBody": {
+                    "ref": "labelText",
+                    "refRx": "50%",
+                    "refRy": "60%",
+                    "fill": "#fff",
+                    "strokeWidth": 0
+                  }
+                },
+                "position": {
+                  "distance": 0.5,
+                  "args": {
+                    "keepGradient": true,
+                    "ensureLegibility": true
+                  }
+                }
+              }
+            ],
+            "source": {
+              "cell": "3bb59d51-8da0-4c81-b730-3d1f254145a3"
+            },
+            "target": {
+              "cell": "4791ecd8-022c-4b3d-bd59-1a651f2fc654"
+            },
+            "vertices": [],
+            "data": {
+              "type": "tm.Flow",
+              "name": "OR",
+              "description": "OR branch of the attack tree",
+              "outOfScope": false,
+              "reasonOutOfScope": "",
+              "protocol": "",
+              "isEncrypted": false,
+              "isPublicNetwork": false,
+              "isBidirectional": false,
+              "threats": [],
+              "hasOpenThreats": false
+            }
+          },
+          {
+            "shape": "flow",
+            "zIndex": 10,
+            "id": "b7a12e73-1ff6-454b-a6ad-a4f27ef45833",
+            "attrs": {
+              "line": {
+                "stroke": "#333333",
+                "strokeWidth": 1.5,
+                "targetMarker": {
+                  "name": "block"
+                },
+                "sourceMarker": {
+                  "name": ""
+                },
+                "strokeDasharray": ""
+              }
+            },
+            "labels": [
+              {
+                "markup": [
+                  {
+                    "tagName": "ellipse",
+                    "selector": "labelBody"
+                  },
+                  {
+                    "tagName": "text",
+                    "selector": "labelText"
+                  }
+                ],
+                "attrs": {
+                  "labelText": {
+                    "text": "OR",
+                    "textAnchor": "middle",
+                    "textVerticalAnchor": "middle"
+                  },
+                  "labelBody": {
+                    "ref": "labelText",
+                    "refRx": "50%",
+                    "refRy": "60%",
+                    "fill": "#fff",
+                    "strokeWidth": 0
+                  }
+                },
+                "position": {
+                  "distance": 0.5,
+                  "args": {
+                    "keepGradient": true,
+                    "ensureLegibility": true
+                  }
+                }
+              }
+            ],
+            "source": {
+              "cell": "25af21a7-4150-435d-b541-3023b8621060"
+            },
+            "target": {
+              "cell": "353eb8a5-c553-4d09-bb04-c333c5fad2e2"
+            },
+            "vertices": [],
+            "data": {
+              "type": "tm.Flow",
+              "name": "OR",
+              "description": "OR branch of the attack tree",
+              "outOfScope": false,
+              "reasonOutOfScope": "",
+              "protocol": "",
+              "isEncrypted": false,
+              "isPublicNetwork": false,
+              "isBidirectional": false,
+              "threats": [],
+              "hasOpenThreats": false
+            }
+          },
+          {
+            "shape": "flow",
+            "zIndex": 10,
+            "id": "fce7c5c1-6ae5-4abd-a483-7b36b30e20cc",
+            "attrs": {
+              "line": {
+                "stroke": "#333333",
+                "strokeWidth": 1.5,
+                "targetMarker": {
+                  "name": "block"
+                },
+                "sourceMarker": {
+                  "name": ""
+                },
+                "strokeDasharray": ""
+              }
+            },
+            "labels": [
+              {
+                "markup": [
+                  {
+                    "tagName": "ellipse",
+                    "selector": "labelBody"
+                  },
+                  {
+                    "tagName": "text",
+                    "selector": "labelText"
+                  }
+                ],
+                "attrs": {
+                  "labelText": {
+                    "text": "OR",
+                    "textAnchor": "middle",
+                    "textVerticalAnchor": "middle"
+                  },
+                  "labelBody": {
+                    "ref": "labelText",
+                    "refRx": "50%",
+                    "refRy": "60%",
+                    "fill": "#fff",
+                    "strokeWidth": 0
+                  }
+                },
+                "position": {
+                  "distance": 0.5,
+                  "args": {
+                    "keepGradient": true,
+                    "ensureLegibility": true
+                  }
+                }
+              }
+            ],
+            "source": {
+              "cell": "f79e243b-dfeb-4696-bd00-7d18607a70ee"
+            },
+            "target": {
+              "cell": "353eb8a5-c553-4d09-bb04-c333c5fad2e2"
+            },
+            "vertices": [],
+            "data": {
+              "type": "tm.Flow",
+              "name": "OR",
+              "description": "OR branch of the attack tree",
+              "outOfScope": false,
+              "reasonOutOfScope": "",
+              "protocol": "",
+              "isEncrypted": false,
+              "isPublicNetwork": false,
+              "isBidirectional": false,
+              "threats": [],
+              "hasOpenThreats": false
+            }
+          },
+          {
+            "shape": "flow",
+            "zIndex": 10,
+            "id": "6413175d-8227-4e15-b93a-149c98e58c94",
+            "attrs": {
+              "line": {
+                "stroke": "#333333",
+                "strokeWidth": 1.5,
+                "targetMarker": {
+                  "name": "block"
+                },
+                "sourceMarker": {
+                  "name": ""
+                },
+                "strokeDasharray": ""
+              }
+            },
+            "labels": [
+              {
+                "markup": [
+                  {
+                    "tagName": "ellipse",
+                    "selector": "labelBody"
+                  },
+                  {
+                    "tagName": "text",
+                    "selector": "labelText"
+                  }
+                ],
+                "attrs": {
+                  "labelText": {
+                    "text": "OR",
+                    "textAnchor": "middle",
+                    "textVerticalAnchor": "middle"
+                  },
+                  "labelBody": {
+                    "ref": "labelText",
+                    "refRx": "50%",
+                    "refRy": "60%",
+                    "fill": "#fff",
+                    "strokeWidth": 0
+                  }
+                },
+                "position": {
+                  "distance": 0.5,
+                  "args": {
+                    "keepGradient": true,
+                    "ensureLegibility": true
+                  }
+                }
+              }
+            ],
+            "source": {
+              "cell": "15d41e6b-d374-4101-95ea-b8432140d538"
+            },
+            "target": {
+              "cell": "db175da2-289b-4cd4-968a-d452faa315e8"
+            },
+            "vertices": [],
+            "data": {
+              "type": "tm.Flow",
+              "name": "OR",
+              "description": "OR branch of the attack tree",
+              "outOfScope": false,
+              "reasonOutOfScope": "",
+              "protocol": "",
+              "isEncrypted": false,
+              "isPublicNetwork": false,
+              "isBidirectional": false,
+              "threats": [],
+              "hasOpenThreats": false
+            }
+          }
+        ]
+      },
       {
         "id": 0,
         "title": "HelixPay payment data flow",
@@ -1747,7 +3793,7 @@
         ]
       }
     ],
-    "diagramTop": 1,
+    "diagramTop": 2,
     "reviewer": "",
     "threatTop": 18
   }
